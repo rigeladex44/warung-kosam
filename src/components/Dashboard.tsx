@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUpRight, ShoppingBag, AlertTriangle, Plus, PackagePlus, TrendingUp, Store, CheckCircle, ClipboardList } from 'lucide-react';
+import { ArrowUpRight, ShoppingBag, AlertTriangle, Plus, PackagePlus, TrendingUp, Store, CheckCircle, ClipboardList, Settings } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { formatRupiah, formatTime } from '@/lib/utils';
 import type { TabName } from './BottomNav';
+import ChangePinModal from './ChangePinModal';
+
+const IS_SUPABASE = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
 
 interface DashboardProps {
     onNavigate: (tab: TabName) => void;
@@ -12,6 +15,7 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
     const [mounted, setMounted] = useState(false);
+    const [showChangePin, setShowChangePin] = useState(false);
     useEffect(() => { setMounted(true); }, []);
 
     const getTodaySales = useStore((s) => s.getTodaySales);
@@ -42,11 +46,24 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <p className="dash-day">{dayStr}</p>
                     <h1 className="dash-date">{dateStr}</h1>
                 </div>
-                <div className="store-badge">
-                    <Store size={14} />
-                    <span>TOKO MBAK ATRIA</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="store-badge">
+                        <Store size={14} />
+                        <span>TOKO MBAK ATRIA</span>
+                    </div>
+                    {IS_SUPABASE && (
+                        <button
+                            className="settings-btn"
+                            onClick={() => setShowChangePin(true)}
+                            title="Ganti PIN"
+                        >
+                            <Settings size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {showChangePin && <ChangePinModal onClose={() => setShowChangePin(false)} />}
 
             {/* ── BENTO STAT CARDS ── */}
             <div className="bento-grid">

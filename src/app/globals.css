@@ -2429,3 +2429,108 @@ textarea {
   background: rgba(220, 38, 38, 0.14);
   border-color: var(--red);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS BUTTON (Dashboard Header)
+═══════════════════════════════════════════════════════════════════════════ */
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.settings-btn:hover {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.settings-btn:active {
+  transform: scale(0.92);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHANGE PIN MODAL
+═══════════════════════════════════════════════════════════════════════════ */
+.change-pin-modal {
+  width: calc(100% - 40px);
+  max-width: 320px;
+  border-radius: 20px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.change-pin-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.change-pin-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.change-pin-close {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.change-pin-close:hover {
+  background: var(--surface-raised);
+}
+
+.change-pin-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 20px 24px;
+  text-align: center;
+}
+
+.change-pin-success p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.change-pin-modal .pin-keypad {
+  padding: 0 20px 20px;
+  gap: 10px;
+}
+
+.change-pin-modal .pin-key {
+  height: 52px;
+  font-size: 18px;
+}

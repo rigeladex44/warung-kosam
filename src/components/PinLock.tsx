@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Lock, Delete } from 'lucide-react';
+import { fetchPin } from '@/lib/pin-manager';
 
-const CORRECT_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN ?? '1234';
 const SESSION_KEY = 'toko_pin_verified';
 
 interface PinLockProps {
@@ -12,25 +12,29 @@ interface PinLockProps {
 
 export default function PinLock({ children }: PinLockProps) {
     const [unlocked, setUnlocked] = useState(false);
+    const [correctPin, setCorrectPin] = useState<string | null>(null);
     const [pin, setPin] = useState('');
     const [error, setError] = useState(false);
     const [shaking, setShaking] = useState(false);
 
-    // Check existing session
+    // Check session & fetch PIN dari Supabase
     useEffect(() => {
         if (sessionStorage.getItem(SESSION_KEY) === '1') {
             setUnlocked(true);
+            return;
         }
+        fetchPin().then(setCorrectPin);
     }, []);
 
     const handleKey = useCallback((digit: string) => {
+        if (!correctPin) return;
         if (pin.length >= 6) return;
         const next = pin + digit;
         setPin(next);
         setError(false);
 
-        if (next.length === CORRECT_PIN.length) {
-            if (next === CORRECT_PIN) {
+        if (next.length === correctPin.length) {
+            if (next === correctPin) {
                 sessionStorage.setItem(SESSION_KEY, '1');
                 setTimeout(() => setUnlocked(true), 300);
             } else {
@@ -42,7 +46,7 @@ export default function PinLock({ children }: PinLockProps) {
                 }, 700);
             }
         }
-    }, [pin]);
+    }, [pin, correctPin]);
 
     const handleDelete = () => {
         setPin((p) => p.slice(0, -1));
@@ -50,6 +54,15 @@ export default function PinLock({ children }: PinLockProps) {
     };
 
     if (unlocked) return <>{children}</>;
+
+    // Loading PIN dari Supabase
+    if (!correctPin) {
+        return (
+            <div className="pin-lock-screen">
+                <div className="loading-spinner" style={{ borderTopColor: '#059669' }} />
+            </div>
+        );
+    }
 
     const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'];
 
@@ -66,7 +79,7 @@ export default function PinLock({ children }: PinLockProps) {
 
                 {/* Dots */}
                 <div className={`pin-dots ${shaking ? 'pin-shake' : ''}`}>
-                    {Array.from({ length: CORRECT_PIN.length }).map((_, i) => (
+                    {Array.from({ length: correctPin.length }).map((_, i) => (
                         <div
                             key={i}
                             className={`pin-dot ${i < pin.length ? 'filled' : ''} ${error ? 'error' : ''}`}
