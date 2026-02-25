@@ -2449,30 +2449,22 @@ textarea {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   STORE SETTINGS MODAL
+   STORE SETTINGS MODAL  (sset-*)
 ═══════════════════════════════════════════════════════════════════════════ */
-.settings-modal-card {
-  width: calc(100% - 32px);
-  max-width: 340px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-}
 
-.settings-modal-header {
+/* Header */
+.sset-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
 }
 
-.settings-modal-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+.sset-header-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   background: rgba(5, 150, 105, 0.1);
   color: #059669;
   display: flex;
@@ -2481,56 +2473,114 @@ textarea {
   flex-shrink: 0;
 }
 
-.settings-modal-title {
+.sset-header-title {
   font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0;
+  flex: 1;
 }
 
-.settings-section {
-  padding: 14px 16px;
+.sset-back {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 2px;
+  transition: background 0.15s;
+  flex-shrink: 0;
 }
 
-.settings-section-label {
+.sset-back:hover {
+  background: var(--surface-raised);
+}
+
+.sset-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.sset-close:hover {
+  background: var(--surface-raised);
+}
+
+/* Body */
+.sset-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Section */
+.sset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sset-label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin: 0 0 10px;
+  margin: 0;
 }
 
-.settings-name-row {
+.sset-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Name row */
+.sset-name-row {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
-.settings-name-input {
+.sset-input {
   flex: 1;
-  height: 40px;
+  height: 42px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: 11px;
   border: 1.5px solid var(--border);
   background: var(--surface);
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
+  font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
 }
 
-.settings-name-input:focus {
+.sset-input:focus {
   border-color: #059669;
 }
 
-.settings-save-btn {
+.sset-save-btn {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 0 14px;
-  height: 40px;
-  border-radius: 10px;
+  height: 42px;
+  border-radius: 11px;
   background: rgba(5, 150, 105, 0.1);
   border: 1.5px solid rgba(5, 150, 105, 0.25);
   color: #059669;
@@ -2539,34 +2589,30 @@ textarea {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s;
+  font-family: inherit;
 }
 
-.settings-save-btn:hover:not(:disabled) {
+.sset-save-btn:hover:not(:disabled) {
   background: rgba(5, 150, 105, 0.18);
 }
 
-.settings-save-btn:disabled {
-  opacity: 0.4;
+.sset-save-btn:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
-.settings-save-btn.saved {
+.sset-save-btn.saved {
   background: rgba(5, 150, 105, 0.15);
   border-color: #059669;
 }
 
-.settings-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 0;
-}
-
-.settings-pin-row {
+/* PIN row */
+.sset-pin-row {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 14px;
+  padding: 11px 14px;
   border-radius: 12px;
   background: var(--surface);
   border: 1.5px solid var(--border);
@@ -2575,154 +2621,131 @@ textarea {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  font-family: inherit;
 }
 
-.settings-pin-row:hover {
+.sset-pin-row:hover {
   background: var(--surface-raised);
   border-color: var(--text-muted);
 }
 
-.settings-pin-icon {
+.sset-pin-icon {
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: rgba(124, 58, 237, 0.10);
+  background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.settings-pin-arrow {
-  margin-left: auto;
-  color: var(--text-muted);
-}
-
-.settings-pin-flow {
-  padding: 4px 0;
-}
-
-.settings-pin-step-label {
+/* PIN keypad inside settings */
+.sset-pin-label {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
-  margin: 0 0 12px;
+  margin: 0 0 6px;
 }
 
-.settings-pin-cancel {
-  display: block;
-  margin: 12px auto 0;
+.sset-pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sset-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.15s, transform 0.15s;
+}
+
+.sset-dot.filled {
+  background: var(--text-primary);
+  transform: scale(1.1);
+}
+
+.sset-dot.error {
+  background: var(--red);
+}
+
+.sset-pin-error {
+  text-align: center;
   font-size: 12px;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
+  font-weight: 600;
+  color: var(--red);
+  margin: 0 0 4px;
 }
 
+.sset-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   SETTINGS BUTTON (Dashboard Header)
-═══════════════════════════════════════════════════════════════════════════ */
-.settings-btn {
+.sset-key {
+  height: 52px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
+  font-family: inherit;
 }
 
-.settings-btn:hover {
+.sset-key:hover {
   background: var(--surface-raised);
-  color: var(--text-primary);
   border-color: var(--text-muted);
 }
 
-.settings-btn:active {
+.sset-key:active {
   transform: scale(0.92);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CHANGE PIN MODAL
-═══════════════════════════════════════════════════════════════════════════ */
-.change-pin-modal {
-  width: calc(100% - 40px);
-  max-width: 320px;
-  border-radius: 20px;
-  padding: 0;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.change-pin-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 16px 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.change-pin-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(5, 150, 105, 0.1);
-  color: #059669;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.change-pin-close {
-  margin-left: auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: none;
-  background: var(--surface);
+.sset-key.del {
+  font-size: 16px;
   color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
 }
 
-.change-pin-close:hover {
-  background: var(--surface-raised);
+.sset-key:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
-.change-pin-success {
+/* Success */
+.sset-success {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 28px 20px 24px;
+  gap: 6px;
+  padding: 12px 0 4px;
   text-align: center;
 }
 
-.change-pin-success p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+.sset-success-title {
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary);
+  margin: 0;
 }
 
-.change-pin-modal .pin-keypad {
-  padding: 0 20px 20px;
-  gap: 10px;
+.sset-success-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.change-pin-modal .pin-key {
-  height: 52px;
-  font-size: 18px;
-}
+
+
