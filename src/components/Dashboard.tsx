@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUpRight, ShoppingBag, AlertTriangle, Plus, PackagePlus, TrendingUp, Store, CheckCircle, ClipboardList, Settings } from 'lucide-react';
+import { ArrowUpRight, ShoppingBag, AlertTriangle, Plus, PackagePlus, TrendingUp, Store, CheckCircle, ClipboardList } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { formatRupiah, formatTime } from '@/lib/utils';
 import type { TabName } from './BottomNav';
-import ChangePinModal from './ChangePinModal';
-
-const IS_SUPABASE = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
+import StoreSettingsModal from './StoreSettingsModal';
+import { fetchStoreName } from '@/lib/pin-manager';
 
 interface DashboardProps {
     onNavigate: (tab: TabName) => void;
@@ -15,8 +14,13 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
     const [mounted, setMounted] = useState(false);
-    const [showChangePin, setShowChangePin] = useState(false);
-    useEffect(() => { setMounted(true); }, []);
+    const [showSettings, setShowSettings] = useState(false);
+    const [storeName, setStoreName] = useState('Toko Mbak Atria');
+
+    useEffect(() => {
+        setMounted(true);
+        fetchStoreName().then(setStoreName);
+    }, []);
 
     const getTodaySales = useStore((s) => s.getTodaySales);
     const getTodayExpenses = useStore((s) => s.getTodayExpenses);
@@ -46,24 +50,22 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                     <p className="dash-day">{dayStr}</p>
                     <h1 className="dash-date">{dateStr}</h1>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div className="store-badge">
-                        <Store size={14} />
-                        <span>TOKO MBAK ATRIA</span>
-                    </div>
-                    {IS_SUPABASE && (
-                        <button
-                            className="settings-btn"
-                            onClick={() => setShowChangePin(true)}
-                            title="Ganti PIN"
-                        >
-                            <Settings size={16} />
-                        </button>
-                    )}
-                </div>
+                <button
+                    className="store-badge store-badge-btn"
+                    onClick={() => setShowSettings(true)}
+                    title="Pengaturan Toko"
+                >
+                    <Store size={14} />
+                    <span>{storeName.toUpperCase()}</span>
+                </button>
             </div>
 
-            {showChangePin && <ChangePinModal onClose={() => setShowChangePin(false)} />}
+            {showSettings && (
+                <StoreSettingsModal
+                    onClose={() => setShowSettings(false)}
+                    onNameChange={setStoreName}
+                />
+            )}
 
             {/* ── BENTO STAT CARDS ── */}
             <div className="bento-grid">
