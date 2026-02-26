@@ -37,7 +37,11 @@ export default function StoreSettingsModal({ onClose, onNameChange }: Props) {
             setStoreName(trimmed);
             onNameChange?.(trimmed);
             setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
+            setTimeout(() => setSaved(false), 2500);
+        } else {
+            // tampilkan flash error singkat
+            setSaved(false);
+            alert('Gagal menyimpan nama toko. Coba lagi.');
         }
     };
 
@@ -149,20 +153,18 @@ export default function StoreSettingsModal({ onClose, onNameChange }: Props) {
                             </div>
                         </div>
 
-                        {/* Keamanan — Supabase only */}
-                        {IS_SUPABASE && (
-                            <>
-                                <div className="sset-divider" />
-                                <div className="sset-section">
-                                    <p className="sset-label">Keamanan</p>
-                                    <button className="sset-pin-row" onClick={() => setView('pin')}>
-                                        <div className="sset-pin-icon"><KeyRound size={15} /></div>
-                                        <span>Ganti PIN Akses</span>
-                                        <ChevronRight size={16} style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} />
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                        {/* Keamanan */}
+                        <>
+                            <div className="sset-divider" />
+                            <div className="sset-section">
+                                <p className="sset-label">Keamanan</p>
+                                <button className="sset-pin-row" onClick={() => setView('pin')}>
+                                    <div className="sset-pin-icon"><KeyRound size={15} /></div>
+                                    <span>Ganti PIN Akses</span>
+                                    <ChevronRight size={16} style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} />
+                                </button>
+                            </div>
+                        </>
                     </div>
                 )}
 

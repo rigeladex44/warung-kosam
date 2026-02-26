@@ -3,13 +3,17 @@
 import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 
-const STORAGE_KEY = 'toko-mini-storage';
+const STORAGE_KEYS = [
+    'toko-mini-storage',
+    'toko-store-name',
+    'toko-access-pin',
+];
 
 export default function DemoReset() {
     const [confirm, setConfirm] = useState(false);
 
     const handleReset = () => {
-        localStorage.removeItem(STORAGE_KEY);
+        STORAGE_KEYS.forEach((k) => localStorage.removeItem(k));
         window.location.reload();
     };
 
