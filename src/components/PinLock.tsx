@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Lock, Delete } from 'lucide-react';
-import { fetchPin } from '@/lib/pin-manager';
+import { fetchPin, fetchStoreName } from '@/lib/pin-manager';
 
 const SESSION_KEY = 'toko_pin_verified';
 
@@ -13,17 +13,21 @@ interface PinLockProps {
 export default function PinLock({ children }: PinLockProps) {
     const [unlocked, setUnlocked] = useState(false);
     const [correctPin, setCorrectPin] = useState<string | null>(null);
+    const [storeName, setStoreName] = useState('Toko Mini');
     const [pin, setPin] = useState('');
     const [error, setError] = useState(false);
     const [shaking, setShaking] = useState(false);
 
-    // Check session & fetch PIN dari Supabase
+    // Check session & fetch PIN + store name
     useEffect(() => {
         if (sessionStorage.getItem(SESSION_KEY) === '1') {
             setUnlocked(true);
             return;
         }
-        fetchPin().then(setCorrectPin);
+        Promise.all([fetchPin(), fetchStoreName()]).then(([p, n]) => {
+            setCorrectPin(p);
+            setStoreName(n);
+        });
     }, []);
 
     const handleKey = useCallback((digit: string) => {
@@ -74,7 +78,7 @@ export default function PinLock({ children }: PinLockProps) {
                     <Lock size={28} />
                 </div>
 
-                <h1 className="pin-lock-title">Toko Mbak Atria</h1>
+                <h1 className="pin-lock-title">{storeName}</h1>
                 <p className="pin-lock-subtitle">Masukkan PIN untuk melanjutkan</p>
 
                 {/* Dots */}

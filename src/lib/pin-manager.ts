@@ -4,6 +4,7 @@ const IS_SUPABASE = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
 const FALLBACK_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN ?? '1234';
 const DEFAULT_NAME = 'Toko Mbak Atria';
 const LS_NAME_KEY = 'toko-store-name';
+const LS_PIN_KEY = 'toko-access-pin';
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 let _cachedPin: string | null = null;
@@ -37,23 +38,34 @@ async function saveSetting(key: string, value: string): Promise<boolean> {
 // PIN
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Ambil PIN — dari Supabase (supabase mode) atau fallback env/default. */
+/** Ambil PIN — dari Supabase (supabase mode) atau localStorage/env. */
 export async function fetchPin(): Promise<string> {
     if (_cachedPin !== null) return _cachedPin;
     if (IS_SUPABASE) {
         _cachedPin = (await fetchSetting('access_pin')) ?? FALLBACK_PIN;
     } else {
-        _cachedPin = FALLBACK_PIN;
+        if (typeof window !== 'undefined') {
+            _cachedPin = localStorage.getItem(LS_PIN_KEY) ?? FALLBACK_PIN;
+        } else {
+            _cachedPin = FALLBACK_PIN;
+        }
     }
     return _cachedPin;
 }
 
-/** Simpan PIN baru ke Supabase. */
+/** Simpan PIN baru — Supabase atau localStorage. */
 export async function updatePin(newPin: string): Promise<boolean> {
-    if (!IS_SUPABASE) return false;
-    const ok = await saveSetting('access_pin', newPin);
-    if (ok) _cachedPin = newPin;
-    return ok;
+    if (IS_SUPABASE) {
+        const ok = await saveSetting('access_pin', newPin);
+        if (ok) _cachedPin = newPin;
+        return ok;
+    } else {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(LS_PIN_KEY, newPin);
+        }
+        _cachedPin = newPin;
+        return true;
+    }
 }
 
 export function clearPinCache() { _cachedPin = null; }

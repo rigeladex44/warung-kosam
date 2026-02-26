@@ -55,15 +55,10 @@ function AppContent() {
 }
 
 export default function Home() {
-  // Supabase mode: wrap dengan PIN Lock
-  if (IS_SUPABASE) {
-    return (
-      <PinLock>
-        <AppContent />
-      </PinLock>
-    );
-  }
-
-  // Demo mode: langsung akses
-  return <AppContent />;
+  // PinLock aktif di semua mode (Supabase & demo/lokal)
+  return (
+    <PinLock>
+      <AppContent />
+    </PinLock>
+  );
 }
