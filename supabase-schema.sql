@@ -59,6 +59,12 @@ CREATE TABLE IF NOT EXISTS expenses (
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Pengaturan Toko (nama & PIN)
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+
 -- ── Enable Realtime ───────────────────────────────────
 -- Jalankan setelah tabel dibuat
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
@@ -69,11 +75,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE expenses;
 
 -- ── Row Level Security (disable for simplicity) ───────
 -- Untuk toko kecil, RLS disabled cukup karena dilindungi PIN
-ALTER TABLE products       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE sales          DISABLE ROW LEVEL SECURITY;
-ALTER TABLE sale_items     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE products        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sales           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sale_items      DISABLE ROW LEVEL SECURITY;
 ALTER TABLE stock_additions DISABLE ROW LEVEL SECURITY;
-ALTER TABLE expenses       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE settings        DISABLE ROW LEVEL SECURITY;
 
 -- ── Seed: Produk Awal ─────────────────────────────────
 INSERT INTO products (id, name, sku, category, cost_price, selling_price, stock, low_stock_threshold) VALUES

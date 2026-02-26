@@ -29,9 +29,10 @@ async function saveSetting(key: string, value: string): Promise<boolean> {
     try {
         const { error } = await supabase
             .from('settings')
-            .upsert({ key, value });
-        return !error;
-    } catch { return false; }
+            .upsert({ key, value }, { onConflict: 'key' });
+        if (error) { console.error('[saveSetting]', error.message); return false; }
+        return true;
+    } catch (e) { console.error('[saveSetting] catch', e); return false; }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
