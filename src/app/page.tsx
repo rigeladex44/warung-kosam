@@ -6,6 +6,7 @@ import Dashboard from '@/components/Dashboard';
 import POS from '@/components/POS';
 import Inventory from '@/components/Inventory';
 import Finance from '@/components/Finance';
+import Karyawan from '@/components/Karyawan'; // 👈 Tambahkan import ini
 import PinLock from '@/components/PinLock';
 import DemoReset from '@/components/DemoReset';
 import { useStore } from '@/lib/store';
@@ -31,6 +32,7 @@ function AppContent() {
       case 'pos': return <POS />;
       case 'inventory': return <Inventory />;
       case 'finance': return <Finance />;
+      case 'karyawan': return <Karyawan />; // 👈 Tambahkan rute untuk Karyawan
       default: return <Dashboard onNavigate={setActiveTab} />;
     }
   };

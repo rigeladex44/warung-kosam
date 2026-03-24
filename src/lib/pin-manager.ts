@@ -1,8 +1,9 @@
 import { supabase } from './supabase-client';
+import { APP_CONFIG } from '@/lib/config'; // 👈 Import config ditambahkan
 
 const IS_SUPABASE = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
 const FALLBACK_PIN = process.env.NEXT_PUBLIC_ACCESS_PIN ?? '1234';
-const DEFAULT_NAME = 'Toko Mbak Atria';
+const DEFAULT_NAME = APP_CONFIG.storeName; // 👈 Default sekarang merujuk ke config
 const LS_NAME_KEY = 'toko-store-name';
 const LS_PIN_KEY = 'toko-access-pin';
 
@@ -75,25 +76,15 @@ export function clearPinCache() { _cachedPin = null; }
 // Store Name
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Ambil nama toko — Supabase atau localStorage. */
+/** Ambil nama toko — 100% dari APP_CONFIG (Mengabaikan cache lama) */
 export async function fetchStoreName(): Promise<string> {
-    if (_cachedName !== null) return _cachedName;
-    if (IS_SUPABASE) {
-        _cachedName = (await fetchSetting('store_name')) ?? DEFAULT_NAME;
-    } else {
-        // localStorage hanya di client
-        if (typeof window !== 'undefined') {
-            _cachedName = localStorage.getItem(LS_NAME_KEY) ?? DEFAULT_NAME;
-        } else {
-            _cachedName = DEFAULT_NAME;
-        }
-    }
-    return _cachedName;
+    // 👈 Langsung tembak ke config sesuai instruksi agent tadi siang
+    return APP_CONFIG.storeName;
 }
 
 /** Simpan nama toko baru. */
 export async function updateStoreName(name: string): Promise<boolean> {
-    const trimmed = name.trim() || DEFAULT_NAME;
+    const trimmed = name.trim() || APP_CONFIG.storeName;
     if (IS_SUPABASE) {
         const ok = await saveSetting('store_name', trimmed);
         if (ok) _cachedName = trimmed;

@@ -8,7 +8,6 @@ export interface Product {
     name: string;
     sku: string;
     category: string;
-    costPrice: number;
     sellingPrice: number;
     stock: number;
     lowStockThreshold: number;
@@ -24,7 +23,6 @@ export interface SaleItem {
     productId: string;
     productName: string;
     quantity: number;
-    costPrice: number;
     sellingPrice: number;
     subtotal: number;
 }
@@ -32,9 +30,7 @@ export interface SaleItem {
 export interface Sale {
     id: string;
     items: SaleItem[];
-    grossRevenue: number;
-    cogs: number;
-    grossProfit: number;
+    totalRevenue: number;
     cashReceived: number;
     change: number;
     createdAt: string;
@@ -121,14 +117,14 @@ const isInMonth = (dateStr: string, year: number, month: number) => {
 // ─── INITIAL DATA ─────────────────────────────────────────────────────────────
 
 const initialProducts: Product[] = [
-    { id: 'p1', name: 'Gas LPG 3 Kg', sku: 'LPG-3', category: 'Gas', costPrice: 15000, sellingPrice: 18000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p2', name: 'Brightgas 5 Kg', sku: 'BG-5', category: 'Gas', costPrice: 65000, sellingPrice: 75000, stock: 20, lowStockThreshold: 5, createdAt: new Date().toISOString() },
-    { id: 'p3', name: 'Brightgas 12.5 Kg', sku: 'BG-125', category: 'Gas', costPrice: 155000, sellingPrice: 170000, stock: 10, lowStockThreshold: 3, createdAt: new Date().toISOString() },
-    { id: 'p4', name: 'Cleo Botol', sku: 'CL-BOT', category: 'Air Minum', costPrice: 2500, sellingPrice: 4000, stock: 50, lowStockThreshold: 12, createdAt: new Date().toISOString() },
-    { id: 'p5', name: 'Cleo Galon Mini', sku: 'CL-GLN', category: 'Air Minum', costPrice: 8000, sellingPrice: 11000, stock: 25, lowStockThreshold: 8, createdAt: new Date().toISOString() },
-    { id: 'p6', name: 'Cleo Isi Ulang', sku: 'CL-ISI', category: 'Air Minum', costPrice: 3500, sellingPrice: 5000, stock: 40, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p7', name: 'Cleo Gelas Mini', sku: 'CL-GLS', category: 'Air Minum', costPrice: 18000, sellingPrice: 24000, stock: 35, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p8', name: 'Aqua Gelas Mini', sku: 'AQ-GLS', category: 'Air Minum', costPrice: 19000, sellingPrice: 25000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
+    { id: 'p1', name: 'Gas LPG 3 Kg', sku: 'LPG-3', category: 'Gas', sellingPrice: 18000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
+    { id: 'p2', name: 'Brightgas 5 Kg', sku: 'BG-5', category: 'Gas', sellingPrice: 75000, stock: 20, lowStockThreshold: 5, createdAt: new Date().toISOString() },
+    { id: 'p3', name: 'Brightgas 12.5 Kg', sku: 'BG-125', category: 'Gas', sellingPrice: 170000, stock: 10, lowStockThreshold: 3, createdAt: new Date().toISOString() },
+    { id: 'p4', name: 'Cleo Botol', sku: 'CL-BOT', category: 'Air Minum', sellingPrice: 4000, stock: 50, lowStockThreshold: 12, createdAt: new Date().toISOString() },
+    { id: 'p5', name: 'Cleo Galon Mini', sku: 'CL-GLN', category: 'Air Minum', sellingPrice: 11000, stock: 25, lowStockThreshold: 8, createdAt: new Date().toISOString() },
+    { id: 'p6', name: 'Cleo Isi Ulang', sku: 'CL-ISI', category: 'Air Minum', sellingPrice: 5000, stock: 40, lowStockThreshold: 10, createdAt: new Date().toISOString() },
+    { id: 'p7', name: 'Cleo Gelas Mini', sku: 'CL-GLS', category: 'Air Minum', sellingPrice: 24000, stock: 35, lowStockThreshold: 10, createdAt: new Date().toISOString() },
+    { id: 'p8', name: 'Aqua Gelas Mini', sku: 'AQ-GLS', category: 'Air Minum', sellingPrice: 25000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
 ];
 
 // ─── ZUSTAND STORE ────────────────────────────────────────────────────────────

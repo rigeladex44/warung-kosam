@@ -6,35 +6,40 @@
    ROOT VARIABLES
 ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --primary: #059669;
-  /* emerald-600 */
-  --primary-light: #d1fae5;
-  /* emerald-100 */
-  --primary-dark: #047857;
-  /* emerald-700 */
+  /* ── Brand: Hitam-Kuning (background tetap putih bersih) ── */
+  --primary: #f59e0b;
+  /* amber-400 — kuning utama */
+  --primary-light: #fef3c7;
+  /* amber-100 */
+  --primary-dark: #d97706;
+  /* amber-600 */
+  --primary-text: #92400e;
+  /* amber-900 — teks di atas bg kuning */
 
-  --blue: #2563eb;
-  /* blue-600 */
+  /* dark accents used in hero cards */
+  --dark: #111111;
+  --dark-card: #1c1c1e;
+  --dark-mid: #2a2a2e;
+
+  --blue: #3b82f6;
   --blue-light: #dbeafe;
 
-  --purple: #7c3aed;
-  /* violet-600 */
+  --purple: #8b5cf6;
   --purple-light: #ede9fe;
 
-  --red: #dc2626;
-  /* red-600 */
+  --red: #ef4444;
   --red-light: #fee2e2;
 
-  --orange: #ea580c;
-  /* orange-600 */
+  --orange: #f97316;
   --orange-light: #ffedd5;
 
-  --bg: #f8fafc;
+  /* ── Surface & Text (PUTIH BERSIH) ── */
+  --bg: #f8f8f6;
   --surface: #ffffff;
-  --border: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --border: #e5e5e1;
+  --text-primary: #111111;
+  --text-secondary: #555555;
+  --text-muted: #999999;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -267,11 +272,11 @@ textarea {
 .bento-hero {
   grid-column: 1 / -1;
   position: relative;
-  background: linear-gradient(135deg, #0b1829 0%, #0f2744 50%, #0a2135 100%);
+  background: linear-gradient(135deg, #111111 0%, #1c1c1e 50%, #111111 100%);
   border-radius: 20px;
   padding: 22px 20px 18px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(5, 90, 60, 0.25), 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* decorative blobs */
@@ -284,7 +289,7 @@ textarea {
 .blob-1 {
   width: 160px;
   height: 160px;
-  background: radial-gradient(circle, rgba(5, 150, 105, 0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.40) 0%, transparent 70%);
   top: -40px;
   right: -30px;
 }
@@ -292,10 +297,11 @@ textarea {
 .blob-2 {
   width: 100px;
   height: 100px;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.25) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.25) 0%, transparent 70%);
   bottom: -20px;
   left: 20px;
 }
+
 
 .bento-hero-top {
   display: flex;
@@ -316,9 +322,9 @@ textarea {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(5, 150, 105, 0.25);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
   font-size: 10px;
   font-weight: 700;
   padding: 3px 9px;
@@ -333,8 +339,7 @@ textarea {
   letter-spacing: -1px;
   line-height: 1.1;
   margin-bottom: 6px;
-  /* subtle gradient text */
-  background: linear-gradient(90deg, #ffffff 60%, #6ee7b7);
+  background: linear-gradient(90deg, #ffffff 50%, #fbbf24);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -357,15 +362,16 @@ textarea {
 
 .bento-bar {
   flex: 1;
-  background: rgba(52, 211, 153, 0.25);
+  background: rgba(245, 158, 11, 0.22);
   border-radius: 3px 3px 2px 2px;
   min-height: 20%;
   transition: height 0.6s ease;
 }
 
 .bento-bar:last-child {
-  background: rgba(52, 211, 153, 0.65);
+  background: rgba(245, 158, 11, 0.70);
 }
+
 
 /* ── Mini cards ── */
 .bento-mini {
@@ -652,8 +658,8 @@ textarea {
 
 .quick-action-btn.primary {
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  color: #111111;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
 }
 
 .quick-action-btn.secondary {
@@ -2747,5 +2753,531 @@ textarea {
   margin: 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAV — 5 tabs (smaller font/icon)
+═══════════════════════════════════════════════════════════════════════════ */
+.nav-label {
+  font-size: 9px;
+}
 
+.nav-item {
+  padding: 8px 2px;
+}
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIN LOCK — MULTI-USER
+═══════════════════════════════════════════════════════════════════════════ */
+.pin-back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+
+.pin-back-btn:hover {
+  color: var(--text-primary);
+}
+
+.pin-lock-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111;
+  margin: 0 auto 12px;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+}
+
+/* User select list */
+.user-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.user-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+
+.user-select-item:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.user-select-item:active {
+  transform: scale(0.98);
+}
+
+.user-select-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  text-align: left;
+}
+
+.user-select-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-select-role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.user-select-arrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Generic user avatar */
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+  flex-shrink: 0;
+}
+
+.user-avatar.small {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+
+.user-avatar.large {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KARYAWAN MODULE
+═══════════════════════════════════════════════════════════════════════════ */
+.kar-active-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary-light), #fff);
+  border: 1.5px solid var(--primary);
+  color: var(--primary-text);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.kar-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kar-user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s;
+}
+
+.kar-user-card:hover {
+  border-color: var(--primary);
+}
+
+.kar-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kar-user-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.kar-user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.kar-active-pill {
+  font-size: 10px;
+  font-weight: 700;
+  color: #16a34a;
+  background: #dcfce7;
+  border-radius: 999px;
+  padding: 2px 8px;
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.kar-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kar-btn-shift {
+  background: var(--primary-light);
+  color: var(--primary-text);
+  border-radius: var(--radius-sm);
+  padding: 7px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.kar-btn-shift:hover {
+  background: var(--primary);
+  color: #111;
+}
+
+/* Shifts page */
+.kar-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+}
+
+.kar-date-input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.kar-today-btn {
+  background: var(--primary-light);
+  color: var(--primary-text);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kar-checkin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kar-checkin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.kar-checkin-row:last-child {
+  border-bottom: none;
+}
+
+.kar-checkin-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.kar-checkin-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.kar-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+.kar-time-badge.in {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.kar-time-badge.out {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.kar-btn-in {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #15803d;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kar-btn-out {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kar-done-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #15803d;
+}
+
+.kar-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.kar-status-badge.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.kar-status-badge.done {
+  background: #f1f5f9;
+  color: var(--text-muted);
+}
+
+/* Role buttons */
+.kar-role-row {
+  display: flex;
+  gap: 8px;
+}
+
+.kar-role-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-secondary);
+  background: var(--surface);
+  transition: all 0.15s;
+}
+
+.kar-role-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-text);
+}
+
+/* Color picker row */
+.kar-color-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kar-color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+}
+
+.kar-color-dot.selected {
+  border-color: var(--text-primary);
+  transform: scale(1.15);
+}
+
+/* PIN ok message */
+.kar-pin-ok {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INVENTORY — UMKM tag
+═══════════════════════════════════════════════════════════════════════════ */
+.inv-umkm-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary-text);
+  background: var(--primary-light);
+  border-radius: 999px;
+  padding: 2px 8px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   POS — PRINT BUTTON
+═══════════════════════════════════════════════════════════════════════════ */
+.btn-print {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.15s, box-shadow 0.15s;
+  background: linear-gradient(135deg, #111111, #333333);
+  color: #f59e0b;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-print:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.btn-print:active {
+  transform: scale(0.97);
+}
+
+.btn-print:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.print-msg {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 10px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(245, 158, 11, 0.3);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FINANCE — Minggu Ini pill (3 tabs)
+═══════════════════════════════════════════════════════════════════════════ */
+.period-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.period-toggle::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STORE BADGE — black/yellow style
+═══════════════════════════════════════════════════════════════════════════ */
+.store-badge {
+  background: linear-gradient(135deg, #111111, #333333);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BTN-PRIMARY — amber/yellow override
+═══════════════════════════════════════════════════════════════════════════ */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #111111;
+}
+
+.btn-icon-primary {
+  background: var(--primary);
+  color: #111111;
+}
+
+/* Finance Hero — profit color update */
+.fin-hero-profit {
+  background: linear-gradient(135deg, #111111 0%, #1c1c1e 100%);
+}
+
+.fin-hero-profit .fin-hero-value {
+  background: linear-gradient(90deg, #fff 50%, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

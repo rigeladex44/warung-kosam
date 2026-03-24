@@ -1,17 +1,21 @@
 'use client';
 
-import { LayoutDashboard, ShoppingCart, Package, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, BarChart3, Users } from 'lucide-react'; // 👈 Tambahkan Users
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { getActiveUser } from '@/lib/users'; // 👈 Import fungsi cek user
 
-export type TabName = 'dashboard' | 'pos' | 'inventory' | 'finance';
+// 👈 Tambahkan 'karyawan' di TabName
+export type TabName = 'dashboard' | 'pos' | 'inventory' | 'finance' | 'karyawan';
 
 interface BottomNavProps {
     activeTab: TabName;
     onTabChange: (tab: TabName) => void;
 }
 
-const navItems = [
+// 👈 Pisahkan menu dasar (untuk semua orang)
+const baseNavItems = [
     { id: 'dashboard' as TabName, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'pos' as TabName, label: 'Kasir', icon: ShoppingCart },
     { id: 'inventory' as TabName, label: 'Stok', icon: Package },
@@ -21,6 +25,22 @@ const navItems = [
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     const cart = useStore((s) => s.cart);
     const cartCount = cart.reduce((sum, c) => sum + c.quantity, 0);
+
+    const [userRole, setUserRole] = useState<'owner' | 'karyawan' | null>(null);
+
+    // 👈 Cek siapa yang sedang login saat komponen dimuat
+    useEffect(() => {
+        const user = getActiveUser();
+        if (user) {
+            setUserRole(user.role);
+        }
+    }, []);
+
+    // 👈 Gabungkan menu dasar dengan menu Karyawan JIKA role-nya owner
+    const navItems = [...baseNavItems];
+    if (userRole === 'owner') {
+        navItems.push({ id: 'karyawan' as TabName, label: 'Karyawan', icon: Users });
+    }
 
     return (
         <nav className="bottom-nav">
