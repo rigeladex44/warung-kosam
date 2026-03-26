@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import {
     UserPlus, Trash2, Users, CheckCircle2,
-    Edit2, X, Save, Delete, LogOut, KeyRound,
+    Edit2, X, Save, KeyRound, ShieldAlert,
+    ChevronRight, Fingerprint, Lock, ShieldCheck,
+    Delete
 } from 'lucide-react';
 import {
-    getUsers, addUser, updateUser, deleteUser, getActiveUser, clearActiveUser,
+    getUsers, addUser, updateUser, deleteUser, getActiveUser,
     type AppUser,
 } from '@/lib/users';
 
@@ -17,9 +19,10 @@ const SEED_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f9
 const emptyForm = { name: '', role: 'karyawan' as AppUser['role'], pin: '', confirmPin: '', color: SEED_COLORS[1] };
 
 export default function Karyawan() {
+    const [mounted, setMounted] = useState(false);
     const [users, setUsers] = useState<AppUser[]>([]);
     const [view, setView] = useState<KaryawanView>('list');
-    const [activeUser] = useState<AppUser | null>(() => getActiveUser());
+    const [activeUser, setActiveUser] = useState<AppUser | null>(null);
     const [form, setForm] = useState(emptyForm);
     const [editTarget, setEditTarget] = useState<AppUser | null>(null);
     const [pinInput, setPinInput] = useState('');
@@ -29,14 +32,40 @@ export default function Karyawan() {
 
     const refresh = () => {
         setUsers(getUsers());
+        setActiveUser(getActiveUser());
     };
 
-    useEffect(() => { refresh(); }, []);
+    useEffect(() => { 
+        setMounted(true);
+        refresh(); 
+    }, []);
 
-    // ── PIN keypad for add/edit ───────────────────────────────────────────────
+    if (!mounted) return null;
+
+    // 🛡️ SECURITY GUARD: Owner Only
+    if (activeUser?.role !== 'owner') {
+        return (
+            <div className="page-container fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+                <div style={{ textAlign: 'center', padding: '40px 24px', background: 'white', borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', maxWidth: '340px' }}>
+                    <div style={{ background: '#fef2f2', color: '#ef4444', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                        <ShieldAlert size={40} />
+                    </div>
+                    <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#0f172a', marginBottom: '12px' }}>Akses Terbatas</h2>
+                    <p style={{ color: '#64748b', fontSize: '15px', lineHeight: '1.6', marginBottom: '32px' }}>Halaman Manajemen Karyawan hanya dapat diakses oleh **Owner (Pemilik Toko)**.</p>
+                    <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#64748b', fontSize: '13px', fontWeight: 700 }}>
+                            <Lock size={14} /> Keamanan Terenkripsi
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── PIN keypad handling ──────────────────────────────────────────────
 
     const handlePinDigit = (d: string) => {
-        if (pinInput.length >= 6) return;
+        if (pinInput.length >= 4) return;
         const next = pinInput + d;
         setPinInput(next);
         setPinError('');
@@ -52,11 +81,10 @@ export default function Karyawan() {
             }
         }
     };
+    
     const handlePinDel = () => { setPinInput((p) => p.slice(0, -1)); setPinError(''); };
 
     const resetPinForm = () => { setPinInput(''); setPinStep('enter'); setPinError(''); setForm((f) => ({ ...f, pin: '', confirmPin: '' })); };
-
-    // ── Save user ─────────────────────────────────────────────────────────────
 
     const handleSave = () => {
         if (!form.name.trim() || !form.pin) return;
@@ -74,206 +102,143 @@ export default function Karyawan() {
     const openEdit = (u: AppUser) => {
         setEditTarget(u);
         setForm({ name: u.name, role: u.role, pin: u.pin, confirmPin: u.pin, color: u.color ?? SEED_COLORS[0] });
-        setPinInput('');
-        setPinStep('enter');
-        setPinError('');
+        resetPinForm();
         setView('edit');
     };
 
     const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'];
 
-    // ── Add / Edit view ───────────────────────────────────────────────────────
-
     if (view === 'add' || view === 'edit') {
-        const title = view === 'add' ? 'Tambah Karyawan' : 'Edit Karyawan';
-        const pinReady = view === 'edit' ? true : (form.pin && form.pin === form.confirmPin);
+        const title = view === 'add' ? 'Tambah Staff' : 'Edit Profil Staff';
+        const pinReady = form.pin && form.pin === form.confirmPin;
         const canSave = form.name.trim() && pinReady;
 
         return (
-            <div className="page-container">
-                <div className="page-header">
-                    <button className="back-btn" onClick={() => { setView('list'); resetPinForm(); }}><X size={20} /></button>
-                    <h1 className="page-title">{title}</h1>
+            <div className="page-container fade-in">
+                <div className="page-header" style={{ marginBottom: '24px' }}>
+                    <button className="back-btn" onClick={() => { setView('list'); resetPinForm(); }} style={{ background: '#f8fafc', padding: '10px', borderRadius: '14px' }}>
+                        <X size={20} />
+                    </button>
+                    <h1 className="page-title" style={{ fontSize: '22px', fontWeight: 900 }}>{title}</h1>
                 </div>
-                <div className="form-card">
-                    {/* Nama */}
-                    <div className="form-group">
-                        <label className="form-label">Nama</label>
-                        <input
-                            className="form-input"
-                            placeholder="Nama karyawan..."
-                            value={form.name}
-                            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        />
+
+                <div className="form-card" style={{ background: 'white', borderRadius: '32px', padding: '32px 24px', border: '1px solid #f1f5f9' }}>
+                    <div className="form-group" style={{ marginBottom: '24px' }}>
+                        <label className="form-label" style={{ fontWeight: 800, fontSize: '11px', color: '#94a3b8', letterSpacing: '0.05em' }}>NAMA LENGKAP</label>
+                        <input className="form-input" placeholder="Masukkan nama staff..."
+                            style={{ height: '56px', borderRadius: '18px', background: '#f8fafc', border: '1.5px solid #f1f5f9', paddingLeft: '20px', fontSize: '16px', fontWeight: 800 }}
+                            value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} />
                     </div>
 
-                    {/* Role */}
-                    <div className="form-group">
-                        <label className="form-label">Role</label>
-                        <div className="kar-role-row">
-                            {(['owner', 'karyawan'] as AppUser['role'][]).map((r) => (
-                                <button
-                                    key={r}
-                                    className={`kar-role-btn ${form.role === r ? 'active' : ''}`}
-                                    onClick={() => setForm((f) => ({ ...f, role: r }))}
-                                >
-                                    {r === 'owner' ? 'Pemilik' : 'Karyawan'}
-                                </button>
+                    <div className="form-group" style={{ marginBottom: '32px' }}>
+                        <label className="form-label" style={{ fontWeight: 800, fontSize: '11px', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '12px', display: 'block' }}>AKSES PIN (4 DIGIT)</label>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} style={{ 
+                                    width: '52px', height: '64px', borderRadius: '14px', border: '2px solid #f1f5f9', 
+                                    background: pinInput.length > i ? '#0f172a' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}>
+                                    {pinInput.length > i && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'white' }} />}
+                                </div>
                             ))}
+                        </div>
+                        {pinError && <div style={{ color: '#ef4444', textAlign: 'center', fontSize: '12px', fontWeight: 800, marginBottom: '12px' }}>{pinError}</div>}
+                        <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 700, color: '#64748b' }}>
+                            {pinStep === 'enter' ? 'Masukkan PIN Baru' : 'Konfirmasi PIN Sekali Lagi'}
                         </div>
                     </div>
 
-                    {/* Color */}
-                    <div className="form-group">
-                        <label className="form-label">Warna Avatar</label>
-                        <div className="kar-color-row">
-                            {SEED_COLORS.map((c) => (
-                                <button
-                                    key={c}
-                                    className={`kar-color-dot ${form.color === c ? 'selected' : ''}`}
-                                    style={{ background: c }}
-                                    onClick={() => setForm((f) => ({ ...f, color: c }))}
-                                />
-                            ))}
-                        </div>
+                    {/* Numerical Keypad */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '32px' }}>
+                        {digits.map((d, i) => (
+                            d === null ? <div key={i} /> :
+                            <button key={i} onClick={() => d === 'del' ? handlePinDel() : handlePinDigit(d.toString())}
+                                style={{ 
+                                    height: '60px', borderRadius: '18px', background: d === 'del' ? '#f8fafc' : 'white', border: '1.5px solid #f1f5f9', 
+                                    fontSize: '20px', fontWeight: 900, color: d === 'del' ? '#ef4444' : '#0f172a',
+                                    boxShadow: '0 4px 0 #f1f5f9' 
+                                }}>
+                                {d === 'del' ? <Delete size={20} style={{ margin: '0 auto' }} /> : d}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* PIN setup */}
-                    <div className="form-group">
-                        <label className="form-label">
-                            <KeyRound size={14} />
-                            {view === 'edit' ? ' PIN (kosongkan jika tidak berubah)' : ` PIN ${pinStep === 'enter' ? '(masukkan 4 digit)' : '(konfirmasi PIN)'}`}
-                        </label>
-
-                        {view === 'edit' && (
-                            <input
-                                className="form-input"
-                                type="password"
-                                placeholder="PIN baru (4 digit)..."
-                                maxLength={6}
-                                inputMode="numeric"
-                                value={form.pin}
-                                onChange={(e) => {
-                                    const v = e.target.value.replace(/\D/g, '');
-                                    setForm((f) => ({ ...f, pin: v, confirmPin: v }));
-                                }}
-                            />
-                        )}
-
-                        {view === 'add' && (
-                            <>
-                                <div className={`sset-pin-dots`} style={{ marginBottom: 8 }}>
-                                    {Array.from({ length: 4 }).map((_, i) => (
-                                        <div key={i} className={`sset-dot ${i < pinInput.length ? 'filled' : ''} ${pinError ? 'error' : ''}`} />
-                                    ))}
-                                </div>
-                                {pinError && <p className="sset-pin-error">{pinError}</p>}
-                                {(form.pin && form.confirmPin) && (
-                                    <div className="kar-pin-ok"><CheckCircle2 size={14} /> PIN dikonfirmasi</div>
-                                )}
-                                <div className="sset-keypad" style={{ maxWidth: 240, margin: '0 auto' }}>
-                                    {digits.map((d, i) => {
-                                        if (d === null) return <div key={i} />;
-                                        if (d === 'del') return (
-                                            <button key={i} className="sset-key del" onClick={handlePinDel} disabled={pinInput.length === 0}>
-                                                <Delete size={18} />
-                                            </button>
-                                        );
-                                        return (
-                                            <button key={i} className="sset-key" onClick={() => handlePinDigit(String(d))}>{d}</button>
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    <button className="btn-primary full-width" disabled={!canSave} onClick={handleSave}>
-                        <Save size={16} /> Simpan
+                    <button className="btn-primary full-width" style={{ height: '60px', borderRadius: '20px', background: '#0f172a', color: 'white', border: 'none', fontSize: '16px', fontWeight: 900 }}
+                        disabled={!canSave} onClick={handleSave}>
+                        <Save size={20} style={{ marginRight: '8px' }} /> Simpan Data Staff
                     </button>
                 </div>
             </div>
         );
     }
 
-    // ── Main list view ────────────────────────────────────────────────────────
-
-    const isOwner = activeUser?.role === 'owner';
-
     return (
-        <div className="page-container">
-            <div className="page-header">
-                <h1 className="page-title">Karyawan</h1>
-                <div className="header-actions">
-                    <button className="btn-icon-secondary" title="Keluar Akun" onClick={() => {
-                        if (typeof window !== 'undefined' && window.confirm('Keluar dari sesi ini?')) {
-                            clearActiveUser();
-                            sessionStorage.removeItem('toko_pin_verified');
-                            window.location.href = '/';
-                        }
-                    }}>
-                        <LogOut size={18} />
-                    </button>
-                    {isOwner && (
-                        <button className="btn-icon-primary" onClick={() => { setForm(emptyForm); resetPinForm(); setView('add'); }}>
-                            <UserPlus size={18} />
-                        </button>
-                    )}
+        <div className="page-container fade-in">
+            <div className="page-header" style={{ marginBottom: '32px' }}>
+                <div>
+                    <h1 className="page-title" style={{ fontSize: '28px', fontWeight: 950, letterSpacing: '-0.5px' }}>Team & Staff</h1>
+                    <p style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}>Kelola akses karyawan Anda</p>
                 </div>
+                <button className="btn-icon-primary" onClick={() => { setForm(emptyForm); resetPinForm(); setView('add'); }} 
+                    style={{ background: '#0f172a', color: 'white', width: '48px', height: '48px', borderRadius: '16px', boxShadow: '0 10px 20px rgba(15, 23, 42, 0.15)' }}>
+                    <UserPlus size={22} />
+                </button>
             </div>
 
-            {/* User cards */}
-            <div className="kar-user-list">
-                {users.map((u) => {
-                    return (
-                        <div key={u.id} className="kar-user-card">
-                            <div
-                                className="user-avatar large"
-                                style={{ background: u.color ?? '#f59e0b' }}
-                            >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {users.map((u) => (
+                    <div key={u.id} className="inv-card" style={{ 
+                        background: 'white', padding: '20px', borderRadius: '28px', border: u.role === 'owner' ? '2px solid #f59e0b' : '1px solid #f1f5f9',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ 
+                                width: '56px', height: '56px', borderRadius: '20px', background: u.color ? u.color + '15' : '#f8fafc', color: u.color || '#64748b', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 950, border: `2.5px solid ${u.color || '#f1f5f9'}`
+                            }}>
                                 {u.name.charAt(0).toUpperCase()}
                             </div>
-                            <div className="kar-user-info">
-                                <div className="kar-user-name">{u.name}</div>
-                                <div className="kar-user-role">
-                                    {u.role === 'owner' ? 'Pemilik' : 'Karyawan'}
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a' }}>{u.name}</h3>
+                                    {u.role === 'owner' && <ShieldCheck size={14} color="#f59e0b" />}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                    <span style={{ fontSize: '10px', fontWeight: 900, background: u.role === 'owner' ? '#fffbeb' : '#f8fafc', color: u.role === 'owner' ? '#f59e0b' : '#64748b', padding: '4px 10px', borderRadius: '8px', border: '1px solid currentColor', letterSpacing: '0.05em' }}>
+                                        {u.role.toUpperCase()}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>PIN: {u.pin}</span>
                                 </div>
                             </div>
-                            <div className="kar-user-actions">
-                                {isOwner && (
-                                    <>
-                                        <button className="inv-btn-edit" onClick={() => openEdit(u)}>
-                                            <Edit2 size={14} />
-                                        </button>
-                                        {u.id !== 'owner' && (
-                                            <button className="inv-btn-delete" onClick={() => setDeleteConfirm(u.id)}>
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </>
-                                )}
-                            </div>
                         </div>
-                    );
-                })}
-
-                {users.length === 0 && (
-                    <div className="empty-state">
-                        <Users size={40} className="empty-icon-muted" />
-                        <p>Belum ada karyawan</p>
+                        
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => openEdit(u)} style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f8fafc', color: '#64748b', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Edit2 size={16} />
+                            </button>
+                            {u.id !== 'owner' && (
+                                <button onClick={() => setDeleteConfirm(u.id)} style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Trash2 size={16} />
+                                </button>
+                            )}
+                        </div>
                     </div>
-                )}
+                ))}
             </div>
 
-            {/* Delete confirm */}
+            {/* Premium Delete Confirmation */}
             {deleteConfirm && (
                 <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="modal-title">Hapus Karyawan?</h3>
-                        <p className="modal-body">Data karyawan <strong>{users.find((u) => u.id === deleteConfirm)?.name}</strong> akan dihapus.</p>
-                        <div className="modal-actions">
-                            <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Batal</button>
-                            <button className="btn-danger" onClick={() => { deleteUser(deleteConfirm); setDeleteConfirm(null); refresh(); }}>Hapus</button>
+                    <div className="modal-card" style={{ padding: '32px 24px', background: 'white', borderRadius: '32px', maxWidth: '340px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
+                        <div style={{ background: '#fef2f2', color: '#ef4444', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                            <Trash2 size={28} />
+                        </div>
+                        <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', marginBottom: '8px' }}>Hapus Staff?</h3>
+                        <p style={{ color: '#64748b', marginBottom: '28px', fontSize: '14px', lineHeight: '1.5' }}>Karyawan ini tidak akan lagi memiliki akses ke sistem kasir WARUNG KOSAM.</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444', color: 'white', height: '52px', borderRadius: '16px' }} onClick={() => { deleteUser(deleteConfirm); setDeleteConfirm(null); refresh(); }}>Ya, Hapus Akses</button>
+                            <button className="btn-secondary" style={{ height: '52px', border: 'none', borderRadius: '16px' }} onClick={() => setDeleteConfirm(null)}>Kembali</button>
                         </div>
                     </div>
                 </div>

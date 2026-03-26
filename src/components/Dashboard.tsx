@@ -292,15 +292,15 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             {/* Logout Confirm Modal */}
             {showLogoutConfirm && (
                 <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
-                    <div className="modal-card" style={{ padding: '24px', background: 'white', borderRadius: '24px', maxWidth: '320px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
-                        <div style={{ background: '#fee2e2', color: '#ef4444', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                            <LogOut size={24} />
+                    <div className="modal-card" style={{ padding: '32px 24px', textAlign: 'center' }}>
+                        <div style={{ background: '#fee2e2', color: '#ef4444', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                            <LogOut size={28} />
                         </div>
-                        <h3 className="modal-title" style={{ marginBottom: '8px', fontSize: '18px' }}>Keluar Sesi Kasir?</h3>
-                        <p className="modal-body" style={{ color: '#666', marginBottom: '24px', fontSize: '14px' }}>Data Anda aman. Silakan masuk kembali nanti dengan PIN.</p>
-                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <button className="btn-primary" style={{ background: '#ef4444' }} onClick={handleLogout}>Ya, Keluar</button>
-                            <button className="btn-secondary" onClick={() => setShowLogoutConfirm(false)}>Nanti Saja</button>
+                        <h3 className="modal-title" style={{ marginBottom: '10px', fontSize: '20px', fontWeight: 900 }}>Keluar Sesi Kasir?</h3>
+                        <p className="modal-body" style={{ color: '#64748b', marginBottom: '32px', fontSize: '14px', lineHeight: '1.6' }}>Sesi kerja hari ini akan berakhir. Anda harus masuk kembali dengan PIN untuk melayani pelanggan.</p>
+                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444', height: '52px', border: 'none', borderRadius: '16px' }} onClick={handleLogout}>Ya, Keluar Akun</button>
+                            <button className="btn-secondary" style={{ height: '52px', border: 'none', borderRadius: '16px' }} onClick={() => setShowLogoutConfirm(false)}>Lanjutkan Kerja</button>
                         </div>
                     </div>
                 </div>
