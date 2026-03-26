@@ -123,7 +123,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             top: '-10px',
                             height: '130%',
                             width: 'auto',
-                            opacity: 0.25,
+                            opacity: 0.65,
                             pointerEvents: 'none',
                             transform: 'rotate(12deg)',
                             filter: 'brightness(0) invert(1)' // White-ish logo for dark yellow background
@@ -150,7 +150,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', background: '#fffbeb', border: '1.5px solid #fde68a', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.25, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.65, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -171,7 +171,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.25, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.65, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -192,7 +192,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', gridColumn: 'span 2', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle wide */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-30px', top: '-10px', height: '140%', opacity: 0.05, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-30px', top: '-10px', height: '140%', opacity: 0.3, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
