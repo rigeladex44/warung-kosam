@@ -82,14 +82,13 @@ ALTER TABLE stock_additions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses        DISABLE ROW LEVEL SECURITY;
 ALTER TABLE settings        DISABLE ROW LEVEL SECURITY;
 
--- ── Seed: Produk Awal ─────────────────────────────────
+-- ── Seed: Produk Awal (Warkop Version) ─────────────────
 INSERT INTO products (id, name, sku, category, cost_price, selling_price, stock, low_stock_threshold) VALUES
-  ('p1', 'Gas LPG 3 Kg',      'LPG-3',  'Gas',       15000, 18000,  30, 10),
-  ('p2', 'Brightgas 5 Kg',    'BG-5',   'Gas',       65000, 75000,  20,  5),
-  ('p3', 'Brightgas 12.5 Kg', 'BG-125', 'Gas',      155000, 170000, 10,  3),
-  ('p4', 'Cleo Botol',        'CL-BOT', 'Air Minum',  2500,  4000,  50, 12),
-  ('p5', 'Cleo Galon Mini',   'CL-GLN', 'Air Minum',  8000, 11000,  25,  8),
-  ('p6', 'Cleo Isi Ulang',    'CL-ISI', 'Air Minum',  3500,  5000,  40, 10),
-  ('p7', 'Cleo Gelas Mini',   'CL-GLS', 'Air Minum', 18000, 24000,  35, 10),
-  ('p8', 'Aqua Gelas Mini',   'AQ-GLS', 'Air Minum', 19000, 25000,  30, 10)
-ON CONFLICT (id) DO NOTHING;
+  ('p1', 'Kopi Hitam',         'KH-01', 'Minuman', 0, 5000, 999, 0),
+  ('p2', 'Kopi Susu Es',       'KS-02', 'Minuman', 0, 8000, 999, 0),
+  ('p3', 'Es Teh Manis',       'ET-03', 'Minuman', 0, 5000, 999, 0),
+  ('p4', 'Indomie Goreng',     'IG-04', 'Makanan', 0, 8000, 999, 0),
+  ('p5', 'Indomie Kuah',       'IK-05', 'Makanan', 0, 8000, 999, 0),
+  ('p6', 'Roti Bakar Coklat',  'RB-06', 'Makanan', 0, 12000, 999, 0),
+  ('p7', 'Pisang Goreng (5pc)', 'PG-07', 'Makanan', 0, 10000, 999, 0),
+  ('p8', 'Air Mineral Botol',  'AM-08', 'Minuman', 0, 4000, 999, 0);

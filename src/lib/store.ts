@@ -58,38 +58,39 @@ export interface Expense {
     createdAt: string;
 }
 
+// ─── TYPES ──────────────────────────────────────────────────────────────────
+
 interface StoreState {
     products: Product[];
     sales: Sale[];
     stockAdditions: StockAddition[];
     expenses: Expense[];
     cart: CartItem[];
+    isLoading?: boolean;
+    isInitialized?: boolean;
 
-    // ─ Products ─
+    // Actions
+    initialize?: () => Promise<void>;
+    
     addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void;
     updateProduct: (id: string, updates: Partial<Product>) => void;
     deleteProduct: (id: string) => void;
     deductStock: (productId: string, qty: number) => void;
     addStockToProduct: (productId: string, qty: number) => void;
 
-    // ─ Cart ─
     addToCart: (product: Product) => void;
     removeFromCart: (productId: string) => void;
     updateCartQty: (productId: string, qty: number) => void;
     clearCart: () => void;
 
-    // ─ Complete Sale ─
     completeSale: (cashReceived: number, paymentMethod?: string, staffName?: string) => Sale | null;
     cancelSale: (id: string) => void;
 
-    // ─ Stock Additions ─
     addStockAddition: (addition: Omit<StockAddition, 'id' | 'createdAt'>) => void;
 
-    // ─ Expenses ─
     addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void;
     deleteExpense: (id: string) => void;
 
-    // ─ Getters ─
     getTodaySales: () => Sale[];
     getTodayExpenses: () => Expense[];
     getLowStockProducts: () => Product[];
@@ -97,21 +98,13 @@ interface StoreState {
 }
 
 // ─── UTILS ──────────────────────────────────────────────────────────────────
-
 const generateId = () => Math.random().toString(36).substring(2, 9);
 const now = () => new Date().toISOString();
-
 const isToday = (dateStr: string) => {
     const d = new Date(dateStr);
     const today = new Date();
-    return (
-        d.getDate() === today.getDate() &&
-        d.getMonth() === today.getMonth() &&
-        d.getFullYear() === today.getFullYear()
-    );
+    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
 };
-
-// ─── INITIAL DATA (Warkop Version) ──────────────────────────────────────────────
 
 const initialProducts: Product[] = [
     { id: 'p1', name: 'Kopi Hitam', sku: 'KH-01', category: 'Kopi & Minuman', sellingPrice: 5000, stock: 999, lowStockThreshold: 0, image: '/katalog/kopi-hitam.jpg', createdAt: new Date().toISOString() },
@@ -124,9 +117,10 @@ const initialProducts: Product[] = [
     { id: 'p8', name: 'Air Mineral Botol', sku: 'AM-08', category: 'Kopi & Minuman', sellingPrice: 4000, stock: 999, lowStockThreshold: 0, image: '/katalog/mineral.jpg', createdAt: new Date().toISOString() },
 ];
 
-// ─── ZUSTAND STORE ────────────────────────────────────────────────────────────
+// ─── STORES ──────────────────────────────────────────────────────────────────
 
-export const useStore = create<StoreState>()(
+// 1. LOCAL STORE (Zustand Persist)
+const useLocalStore = create<StoreState>()(
     persist(
         (set, get) => ({
             products: initialProducts,
@@ -134,138 +128,49 @@ export const useStore = create<StoreState>()(
             stockAdditions: [],
             expenses: [],
             cart: [],
+            isLoading: false,
+            isInitialized: true,
+            initialize: async () => {}, // No-op for local
 
-            // ─ Products ─
-            addProduct: (product) =>
-                set((s) => ({
-                    products: [...s.products, { ...product, id: generateId(), createdAt: now() }],
-                })),
-
-            updateProduct: (id, updates) =>
-                set((s) => ({
-                    products: s.products.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-                })),
-
-            deleteProduct: (id) =>
-                set((s) => ({
-                    products: s.products.filter((p) => p.id !== id),
-                    cart: s.cart.filter((c) => c.product.id !== id),
-                })),
-
-            deductStock: (productId, qty) => {
-                /* Nonaktif di versi Warkop (No Stock Tracking) */
-            },
-
-            addStockToProduct: (productId, qty) => {
-                /* Nonaktif di versi Warkop */
-            },
-
-            // ─ Cart ─
-            addToCart: (product) =>
-                set((s) => {
-                    const existing = s.cart.find((c) => c.product.id === product.id);
-                    if (existing) {
-                        return {
-                            cart: s.cart.map((c) =>
-                                c.product.id === product.id ? { ...c, quantity: c.quantity + 1 } : c
-                            ),
-                        };
-                    }
-                    return { cart: [...s.cart, { product, quantity: 1 }] };
-                }),
-
-            removeFromCart: (productId) =>
-                set((s) => ({ cart: s.cart.filter((c) => c.product.id !== productId) })),
-
-            updateCartQty: (productId, qty) =>
-                set((s) => {
-                    if (qty <= 0) return { cart: s.cart.filter((c) => c.product.id !== productId) };
-                    return {
-                        cart: s.cart.map((c) => (c.product.id === productId ? { ...c, quantity: qty } : c)),
-                    };
-                }),
-
+            addProduct: (p) => set((s) => ({ products: [...s.products, { ...p, id: generateId(), createdAt: now() }] })),
+            updateProduct: (id, updates) => set((s) => ({ products: s.products.map((p) => (p.id === id ? { ...p, ...updates } : p)) })),
+            deleteProduct: (id) => set((s) => ({ products: s.products.filter((p) => p.id !== id), cart: s.cart.filter((c) => c.product.id !== id) })),
+            deductStock: (productId, qty) => {}, 
+            addStockToProduct: (productId, qty) => {},
+            addToCart: (product) => set((s) => {
+                const existing = s.cart.find((c) => c.product.id === product.id);
+                return { cart: existing ? s.cart.map((c) => c.product.id === product.id ? { ...c, quantity: c.quantity + 1 } : c) : [...s.cart, { product, quantity: 1 }] };
+            }),
+            removeFromCart: (pId) => set((s) => ({ cart: s.cart.filter((c) => c.product.id !== pId) })),
+            updateCartQty: (pId, qty) => set((s) => ({ cart: qty <= 0 ? s.cart.filter((c) => c.product.id !== pId) : s.cart.map((c) => (c.product.id === pId ? { ...c, quantity: qty } : c)) })),
             clearCart: () => set({ cart: [] }),
-
-            // ─ Complete Sale ─
-            completeSale: (cashReceived, paymentMethod = 'Cash', staffName = 'Kasir') => {
+            completeSale: (cash, method = 'Cash', staff = 'Kasir') => {
                 const { cart } = get();
                 if (cart.length === 0) return null;
-
-                const items: SaleItem[] = cart.map((c) => ({
-                    productId: c.product.id,
-                    productName: c.product.name,
-                    quantity: c.quantity,
-                    sellingPrice: c.product.sellingPrice,
-                    subtotal: c.product.sellingPrice * c.quantity,
-                }));
-
-                const totalRevenue = items.reduce((sum, i) => sum + i.subtotal, 0);
-                const change = cashReceived - totalRevenue;
-
-                const sale: Sale = {
-                    id: generateId(),
-                    items,
-                    totalRevenue,
-                    cashReceived,
-                    change,
-                    paymentMethod,
-                    staffName,
-                    createdAt: now(),
-                };
-
-                // NOTE: Stok tidak dipotong di versi Warkop agar tidak muncul "Stok Habis"
-                set((s) => ({
-                    sales: [...s.sales, sale],
-                    cart: [],
-                }));
-
+                const sale: Sale = { id: generateId(), items: cart.map(c => ({...c.product, productId: c.product.id, productName: c.product.name, subtotal: c.product.sellingPrice * c.quantity, quantity: c.quantity})), totalRevenue: cart.reduce((sum, c) => sum + (c.product.sellingPrice * c.quantity), 0), cashReceived: cash, change: cash - cart.reduce((sum, c) => sum + (c.product.sellingPrice * c.quantity), 0), paymentMethod: method, staffName: staff, createdAt: now() };
+                set((s) => ({ sales: [...s.sales, sale], cart: [] }));
                 return sale;
             },
-
-            cancelSale: (id) => {
-                set((s) => ({
-                    sales: s.sales.filter(s => s.id !== id),
-                }));
-            },
-
-            // ─ Stock Additions ─
-            addStockAddition: (addition) =>
-                set((s) => ({
-                    stockAdditions: [...s.stockAdditions, { ...addition, id: generateId(), createdAt: now() }],
-                })),
-
-            // ─ Expenses ─
-            addExpense: (expense) =>
-                set((s) => ({
-                    expenses: [...s.expenses, { ...expense, id: generateId(), createdAt: now() }],
-                })),
-
-            deleteExpense: (id) =>
-                set((s) => ({
-                    expenses: s.expenses.filter((e) => e.id !== id),
-                })),
-
-            // ─ Getters ─
-            getTodaySales: () => {
-                const { sales } = get();
-                return sales.filter((s) => isToday(s.createdAt));
-            },
-
-            getTodayExpenses: () => {
-                const { expenses } = get();
-                return expenses.filter((e) => isToday(e.createdAt));
-            },
-
-            getLowStockProducts: () => {
-                // Selalu kosong di versi Warkop karena tidak pakai manajemen stok kaku
-                return [];
-            },
-
+            cancelSale: (id) => set((s) => ({ sales: s.sales.filter(s => s.id !== id) })),
+            addStockAddition: (add) => set((s) => ({ stockAdditions: [...s.stockAdditions, { ...add, id: generateId(), createdAt: now() }] })),
+            addExpense: (e) => set((s) => ({ expenses: [...s.expenses, { ...e, id: generateId(), createdAt: now() }] })),
+            deleteExpense: (id) => set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) })),
+            getTodaySales: () => get().sales.filter((s) => isToday(s.createdAt)),
+            getTodayExpenses: () => get().expenses.filter((e) => isToday(e.createdAt)),
+            getLowStockProducts: () => [],
             resetAllData: () => set({ sales: [], expenses: [], stockAdditions: [], cart: [] }),
         }),
-        {
-            name: 'warunk-kosam-storage',
-        }
+        { name: 'warunk-kosam-storage' }
     )
 );
+
+// 2. EXPORT SELECTOR
+import { useSupabaseStore } from './store-supabase';
+
+const isSupabase = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
+
+/**
+ * Hook utama untuk akses data aplikasi (Otomatis deteksi mode: Local vs Supabase)
+ * Typecasted ke typeof useLocalStore agar komponen tetap dapet type-safety yang konsisten.
+ */
+export const useStore: typeof useLocalStore = (isSupabase ? useSupabaseStore : useLocalStore) as any;
