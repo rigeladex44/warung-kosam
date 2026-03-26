@@ -82,7 +82,7 @@ export default function PinLock({ children }: PinLockProps) {
             <div className="pin-lock-screen">
                 <div className="pin-lock-card">
                     <div className="pin-lock-icon">
-                        <User size={28} />
+                        <img src="/logo.png" alt="Logo" className="login-logo-img" />
                     </div>
                     <h1 className="pin-lock-title">{APP_CONFIG.storeName}</h1>
                     <p className="pin-lock-subtitle">Pilih akun untuk masuk</p>
