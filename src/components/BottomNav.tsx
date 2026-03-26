@@ -18,7 +18,7 @@ interface BottomNavProps {
 const baseNavItems = [
     { id: 'dashboard' as TabName, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'pos' as TabName, label: 'Kasir', icon: ShoppingCart },
-    { id: 'inventory' as TabName, label: 'Stok', icon: Package },
+    { id: 'inventory' as TabName, label: 'Menu', icon: Package },
     { id: 'finance' as TabName, label: 'Keuangan', icon: BarChart3 },
 ];
 

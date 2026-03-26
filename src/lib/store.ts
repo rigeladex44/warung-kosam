@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // ─── DATA MODELS ────────────────────────────────────────────────────────────
+// Fokus Warung Kopi: Tanpa HPP/COGS dan Tanpa Manajemen Stok yang kaku.
 
 export interface Product {
     id: string;
@@ -11,6 +12,7 @@ export interface Product {
     sellingPrice: number;
     stock: number;
     lowStockThreshold: number;
+    image?: string; // 🖼️ Opsional, simpan path gambar dari /public/katalog/
     createdAt: string;
 }
 
@@ -33,6 +35,8 @@ export interface Sale {
     totalRevenue: number;
     cashReceived: number;
     change: number;
+    paymentMethod?: string;
+    staffName?: string;
     createdAt: string;
 }
 
@@ -54,10 +58,7 @@ export interface Expense {
     createdAt: string;
 }
 
-// ─── STORE STATE ─────────────────────────────────────────────────────────────
-
 interface StoreState {
-    // Data
     products: Product[];
     sales: Sale[];
     stockAdditions: StockAddition[];
@@ -66,7 +67,7 @@ interface StoreState {
 
     // ─ Products ─
     addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => void;
-    updateProduct: (id: string, updates: Partial<Omit<Product, 'id' | 'createdAt'>>) => void;
+    updateProduct: (id: string, updates: Partial<Product>) => void;
     deleteProduct: (id: string) => void;
     deductStock: (productId: string, qty: number) => void;
     addStockToProduct: (productId: string, qty: number) => void;
@@ -77,8 +78,9 @@ interface StoreState {
     updateCartQty: (productId: string, qty: number) => void;
     clearCart: () => void;
 
-    // ─ Sales ─
-    completeSale: (cashReceived: number) => Sale | null;
+    // ─ Complete Sale ─
+    completeSale: (cashReceived: number, paymentMethod?: string, staffName?: string) => Sale | null;
+    cancelSale: (id: string) => void;
 
     // ─ Stock Additions ─
     addStockAddition: (addition: Omit<StockAddition, 'id' | 'createdAt'>) => void;
@@ -87,49 +89,44 @@ interface StoreState {
     addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void;
     deleteExpense: (id: string) => void;
 
-    // ─ Selectors ─
-    getLowStockProducts: () => Product[];
+    // ─ Getters ─
     getTodaySales: () => Sale[];
     getTodayExpenses: () => Expense[];
-    getMonthSales: (year: number, month: number) => Sale[];
-    getMonthExpenses: (year: number, month: number) => Expense[];
-    getCartTotal: () => number;
-    getCartCOGS: () => number;
+    getLowStockProducts: () => Product[];
+    resetAllData: () => void;
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+// ─── UTILS ──────────────────────────────────────────────────────────────────
 
-const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-
+const generateId = () => Math.random().toString(36).substring(2, 9);
 const now = () => new Date().toISOString();
 
 const isToday = (dateStr: string) => {
     const d = new Date(dateStr);
-    const t = new Date();
-    return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+    const today = new Date();
+    return (
+        d.getDate() === today.getDate() &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear()
+    );
 };
 
-const isInMonth = (dateStr: string, year: number, month: number) => {
-    const d = new Date(dateStr);
-    return d.getFullYear() === year && d.getMonth() === month;
-};
-
-// ─── INITIAL DATA ─────────────────────────────────────────────────────────────
+// ─── INITIAL DATA (Warkop Version) ──────────────────────────────────────────────
 
 const initialProducts: Product[] = [
-    { id: 'p1', name: 'Gas LPG 3 Kg', sku: 'LPG-3', category: 'Gas', sellingPrice: 18000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p2', name: 'Brightgas 5 Kg', sku: 'BG-5', category: 'Gas', sellingPrice: 75000, stock: 20, lowStockThreshold: 5, createdAt: new Date().toISOString() },
-    { id: 'p3', name: 'Brightgas 12.5 Kg', sku: 'BG-125', category: 'Gas', sellingPrice: 170000, stock: 10, lowStockThreshold: 3, createdAt: new Date().toISOString() },
-    { id: 'p4', name: 'Cleo Botol', sku: 'CL-BOT', category: 'Air Minum', sellingPrice: 4000, stock: 50, lowStockThreshold: 12, createdAt: new Date().toISOString() },
-    { id: 'p5', name: 'Cleo Galon Mini', sku: 'CL-GLN', category: 'Air Minum', sellingPrice: 11000, stock: 25, lowStockThreshold: 8, createdAt: new Date().toISOString() },
-    { id: 'p6', name: 'Cleo Isi Ulang', sku: 'CL-ISI', category: 'Air Minum', sellingPrice: 5000, stock: 40, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p7', name: 'Cleo Gelas Mini', sku: 'CL-GLS', category: 'Air Minum', sellingPrice: 24000, stock: 35, lowStockThreshold: 10, createdAt: new Date().toISOString() },
-    { id: 'p8', name: 'Aqua Gelas Mini', sku: 'AQ-GLS', category: 'Air Minum', sellingPrice: 25000, stock: 30, lowStockThreshold: 10, createdAt: new Date().toISOString() },
+    { id: 'p1', name: 'Kopi Hitam', sku: 'KH-01', category: 'Kopi & Minuman', sellingPrice: 5000, stock: 999, lowStockThreshold: 0, image: '/katalog/kopi-hitam.jpg', createdAt: new Date().toISOString() },
+    { id: 'p2', name: 'Kopi Susu Es', sku: 'KS-02', category: 'Kopi & Minuman', sellingPrice: 8000, stock: 999, lowStockThreshold: 0, image: '/katalog/kopi-susu.jpg', createdAt: new Date().toISOString() },
+    { id: 'p3', name: 'Es Teh Manis', sku: 'ET-03', category: 'Kopi & Minuman', sellingPrice: 5000, stock: 999, lowStockThreshold: 0, image: '/katalog/esteh.jpg', createdAt: new Date().toISOString() },
+    { id: 'p4', name: 'Indomie Goreng', sku: 'IG-04', category: 'Makanan', sellingPrice: 8000, stock: 999, lowStockThreshold: 0, image: '/katalog/indomie-goreng.jpg', createdAt: new Date().toISOString() },
+    { id: 'p5', name: 'Indomie Kuah', sku: 'IK-05', category: 'Makanan', sellingPrice: 8000, stock: 999, lowStockThreshold: 0, image: '/katalog/indomie-kuah.jpg', createdAt: new Date().toISOString() },
+    { id: 'p6', name: 'Roti Bakar Coklat', sku: 'RB-06', category: 'Makanan', sellingPrice: 12000, stock: 999, lowStockThreshold: 0, image: '/katalog/roti-bakar.jpg', createdAt: new Date().toISOString() },
+    { id: 'p7', name: 'Pisang Goreng (5pcs)', sku: 'PG-07', category: 'Makanan', sellingPrice: 10000, stock: 999, lowStockThreshold: 0, image: '/katalog/pisang-goreng.jpg', createdAt: new Date().toISOString() },
+    { id: 'p8', name: 'Air Mineral Botol', sku: 'AM-08', category: 'Kopi & Minuman', sellingPrice: 4000, stock: 999, lowStockThreshold: 0, image: '/katalog/mineral.jpg', createdAt: new Date().toISOString() },
 ];
 
 // ─── ZUSTAND STORE ────────────────────────────────────────────────────────────
 
-const useLocalStore = create<StoreState>()(
+export const useStore = create<StoreState>()(
     persist(
         (set, get) => ({
             products: initialProducts,
@@ -155,19 +152,13 @@ const useLocalStore = create<StoreState>()(
                     cart: s.cart.filter((c) => c.product.id !== id),
                 })),
 
-            deductStock: (productId, qty) =>
-                set((s) => ({
-                    products: s.products.map((p) =>
-                        p.id === productId ? { ...p, stock: Math.max(0, p.stock - qty) } : p
-                    ),
-                })),
+            deductStock: (productId, qty) => {
+                /* Nonaktif di versi Warkop (No Stock Tracking) */
+            },
 
-            addStockToProduct: (productId, qty) =>
-                set((s) => ({
-                    products: s.products.map((p) =>
-                        p.id === productId ? { ...p, stock: p.stock + qty } : p
-                    ),
-                })),
+            addStockToProduct: (productId, qty) => {
+                /* Nonaktif di versi Warkop */
+            },
 
             // ─ Cart ─
             addToCart: (product) =>
@@ -197,63 +188,52 @@ const useLocalStore = create<StoreState>()(
             clearCart: () => set({ cart: [] }),
 
             // ─ Complete Sale ─
-            completeSale: (cashReceived) => {
-                const { cart, products } = get();
+            completeSale: (cashReceived, paymentMethod = 'Cash', staffName = 'Kasir') => {
+                const { cart } = get();
                 if (cart.length === 0) return null;
 
                 const items: SaleItem[] = cart.map((c) => ({
                     productId: c.product.id,
                     productName: c.product.name,
                     quantity: c.quantity,
-                    costPrice: c.product.costPrice,
                     sellingPrice: c.product.sellingPrice,
                     subtotal: c.product.sellingPrice * c.quantity,
                 }));
 
-                const grossRevenue = items.reduce((sum, i) => sum + i.subtotal, 0);
-                const cogs = items.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
-                const grossProfit = grossRevenue - cogs;
-                const change = cashReceived - grossRevenue;
+                const totalRevenue = items.reduce((sum, i) => sum + i.subtotal, 0);
+                const change = cashReceived - totalRevenue;
 
                 const sale: Sale = {
                     id: generateId(),
                     items,
-                    grossRevenue,
-                    cogs,
-                    grossProfit,
+                    totalRevenue,
                     cashReceived,
                     change,
+                    paymentMethod,
+                    staffName,
                     createdAt: now(),
                 };
 
-                // Deduct stock for each item
-                const updatedProducts = products.map((p) => {
-                    const item = items.find((i) => i.productId === p.id);
-                    if (item) return { ...p, stock: Math.max(0, p.stock - item.quantity) };
-                    return p;
-                });
-
+                // NOTE: Stok tidak dipotong di versi Warkop agar tidak muncul "Stok Habis"
                 set((s) => ({
                     sales: [...s.sales, sale],
-                    products: updatedProducts,
                     cart: [],
                 }));
 
                 return sale;
             },
 
+            cancelSale: (id) => {
+                set((s) => ({
+                    sales: s.sales.filter(s => s.id !== id),
+                }));
+            },
+
             // ─ Stock Additions ─
             addStockAddition: (addition) =>
-                set((s) => {
-                    const newAddition: StockAddition = { ...addition, id: generateId(), createdAt: now() };
-                    const updatedProducts = s.products.map((p) =>
-                        p.id === addition.productId ? { ...p, stock: p.stock + addition.quantity } : p
-                    );
-                    return {
-                        stockAdditions: [...s.stockAdditions, newAddition],
-                        products: updatedProducts,
-                    };
-                }),
+                set((s) => ({
+                    stockAdditions: [...s.stockAdditions, { ...addition, id: generateId(), createdAt: now() }],
+                })),
 
             // ─ Expenses ─
             addExpense: (expense) =>
@@ -262,14 +242,11 @@ const useLocalStore = create<StoreState>()(
                 })),
 
             deleteExpense: (id) =>
-                set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) })),
+                set((s) => ({
+                    expenses: s.expenses.filter((e) => e.id !== id),
+                })),
 
-            // ─ Selectors ─
-            getLowStockProducts: () => {
-                const { products } = get();
-                return products.filter((p) => p.stock <= p.lowStockThreshold);
-            },
-
+            // ─ Getters ─
             getTodaySales: () => {
                 const { sales } = get();
                 return sales.filter((s) => isToday(s.createdAt));
@@ -280,41 +257,15 @@ const useLocalStore = create<StoreState>()(
                 return expenses.filter((e) => isToday(e.createdAt));
             },
 
-            getMonthSales: (year, month) => {
-                const { sales } = get();
-                return sales.filter((s) => isInMonth(s.createdAt, year, month));
+            getLowStockProducts: () => {
+                // Selalu kosong di versi Warkop karena tidak pakai manajemen stok kaku
+                return [];
             },
 
-            getMonthExpenses: (year, month) => {
-                const { expenses } = get();
-                return expenses.filter((e) => isInMonth(e.createdAt, year, month));
-            },
-
-            getCartTotal: () => {
-                const { cart } = get();
-                return cart.reduce((sum, c) => sum + c.product.sellingPrice * c.quantity, 0);
-            },
-
-            getCartCOGS: () => {
-                const { cart } = get();
-                return cart.reduce((sum, c) => sum + c.product.costPrice * c.quantity, 0);
-            },
+            resetAllData: () => set({ sales: [], expenses: [], stockAdditions: [], cart: [] }),
         }),
         {
-            name: 'toko-mini-storage',
-            partialize: (state) => ({
-                products: state.products,
-                sales: state.sales,
-                stockAdditions: state.stockAdditions,
-                expenses: state.expenses,
-            }),
+            name: 'warunk-kosam-storage',
         }
     )
 );
-
-// ─── Conditional Store Export ──────────────────────────────────────────────
-// Komponen import { useStore } dari sini — tidak perlu tahu mode yang aktif.
-import { useSupabaseStore } from './store-supabase';
-const _isSupabase = process.env.NEXT_PUBLIC_STORAGE_MODE === 'supabase';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useStore: typeof useSupabaseStore = _isSupabase ? useSupabaseStore : (useLocalStore as any);

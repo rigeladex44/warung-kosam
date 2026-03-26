@@ -1,218 +1,310 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowUpRight, ShoppingBag, Plus, TrendingUp, Store, ClipboardList } from 'lucide-react';
-import { useStore } from '@/lib/store';
+import { useState, useMemo, useEffect } from 'react';
+import {
+    ArrowUpRight, TrendingUp, ShoppingBag, Plus, ClipboardList, Store, LogOut, ChevronRight,
+    Zap, Calendar, Wallet, Banknote
+} from 'lucide-react';
+import { useStore, type Sale } from '@/lib/store';
 import { formatRupiah, formatTime } from '@/lib/utils';
-import type { TabName } from './BottomNav';
-import StoreSettingsModal from './StoreSettingsModal';
-import { fetchStoreName } from '@/lib/pin-manager';
-import { getActiveUser, clearActiveUser } from '@/lib/users';
-import { User, LogOut } from 'lucide-react';
-import TransactionDetailModal from './TransactionDetailModal';
 import { APP_CONFIG } from '@/lib/config';
-import type { Sale } from '@/lib/store';
+import { getActiveUser, clearActiveUser } from '@/lib/users';
+import TransactionDetailModal from './TransactionDetailModal';
+
+// Helper to check if date is today
+const isToday = (dateStr: string) => {
+    const d = new Date(dateStr);
+    const today = new Date();
+    return (
+        d.getDate() === today.getDate() &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear()
+    );
+};
 
 interface DashboardProps {
-    onNavigate: (tab: TabName) => void;
+    onNavigate: (tab: 'dashboard' | 'pos' | 'inventory' | 'finance' | 'karyawan') => void;
 }
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
-    const [mounted, setMounted] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const [storeName, setStoreName] = useState(APP_CONFIG.storeName);
+    const sales = useStore((s) => s.sales);
+    const expenses = useStore((s) => s.expenses);
+    const cancelSale = useStore((s) => s.cancelSale);
+
+    // Filter secara lokal dengan useMemo agar stabil
+    const todaySales = useMemo(() => sales.filter(s => isToday(s.createdAt)), [sales]);
+    const todayExpenses = useMemo(() => expenses.filter(e => isToday(e.createdAt)), [expenses]);
+
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [activeUser, setActiveUser] = useState<any>(null);
 
     useEffect(() => {
-        setMounted(true);
-        fetchStoreName().then(setStoreName);
+        setActiveUser(getActiveUser());
     }, []);
+
+    // ── Metrics Calculation ───────────────────────────────────────────────────
+    const totalRevenue = useMemo(() => todaySales.reduce((sum, s) => sum + s.totalRevenue, 0), [todaySales]);
+    const totalExp = useMemo(() => todayExpenses.reduce((sum, e) => sum + e.amount, 0), [todayExpenses]);
+    const netProfit = totalRevenue - totalExp;
+    const isProfit = netProfit >= 0;
+    const transactionCount = todaySales.length;
+
+    const cashRevenue = useMemo(() =>
+        todaySales
+            .filter(s => !s.paymentMethod || s.paymentMethod === 'Cash')
+            .reduce((sum, s) => sum + s.totalRevenue, 0),
+        [todaySales]);
+
+    const cashInDrawer = cashRevenue - totalExp;
 
     const handleLogout = () => {
         clearActiveUser();
         sessionStorage.removeItem('toko_pin_verified');
-        window.location.href = '/';
+        window.location.reload();
     };
-
-    const activeUser = mounted ? getActiveUser() : null;
-
-    const getTodaySales = useStore((s) => s.getTodaySales);
-    const getTodayExpenses = useStore((s) => s.getTodayExpenses);
-    const cancelSale = useStore((s) => s.cancelSale);
-
-    const todaySales = mounted ? getTodaySales() : [];
-    const todayExpenses = mounted ? getTodayExpenses() : [];
-
-    const totalRevenue = todaySales.reduce((sum, s) => sum + s.totalRevenue, 0);
-    const totalExpenses = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const netProfit = totalRevenue - totalExpenses;
-    const transactionCount = todaySales.length;
-    const isProfit = netProfit >= 0;
-
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
     return (
         <div className="page-container">
-
-            {/* ── Header ── */}
-            <div className="dash-header" style={{ alignItems: 'flex-start', display: 'flex', gap: '16px' }}>
-                {APP_CONFIG.logo && (
-                    <img src={APP_CONFIG.logo} alt="Logo" style={{ width: 70, height: 70, borderRadius: '6px', objectFit: 'contain' }} />
-                )}
-                <div>
-                    <h1 className="dash-date">{dateStr}</h1>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: 8 }}>
-                        <button
-                            className="store-badge store-badge-btn"
-                            onClick={() => setShowSettings(true)}
-                            title="Pengaturan Toko"
-                        >
-                            <Store size={12} />
-                            <span>{storeName}</span>
-                        </button>
-                        {activeUser && (
-                            <button className="store-badge store-badge-btn" style={{ background: '#fef3c7', color: '#d97706', borderColor: '#fcd34d' }} onClick={() => setShowLogoutConfirm(true)}>
-                                <User size={12} />
-                                <span>{activeUser.name}</span>
-                                <LogOut size={12} style={{ marginLeft: 4 }} />
-                            </button>
-                        )}
+            {/* ── Dashboard Header ── */}
+            <div className="page-header" style={{ marginBottom: '32px' }}>
+                <div className="fade-in">
+                    <h1 className="page-title" style={{ fontSize: '28px', letterSpacing: '-1px' }}>{APP_CONFIG.storeName}</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                        <div className="live-dot" />
+                        <p className="page-subtitle" style={{ fontSize: '14px', fontWeight: 500 }}>Halo, {activeUser?.name || 'Kasir'} · {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                     </div>
+                </div>
+                <button
+                    className="logout-header-btn"
+                    onClick={() => setShowLogoutConfirm(true)}
+                    style={{ background: '#f3f4f6', padding: '10px', borderRadius: '12px', color: '#666', border: 'none' }}
+                >
+                    <LogOut size={20} />
+                </button>
+            </div>
+
+            {/* ── Premium Hero Card with Background Logo ── */}
+            <div className="bento-hero fade-in" style={{
+                animationDelay: '0.1s',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                boxShadow: '0 12px 32px rgba(245, 158, 11, 0.4)',
+                padding: '32px 24px',
+                marginBottom: '24px',
+                border: 'none',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* 🎨 Background Logo (Cut off on the right) */}
+                {APP_CONFIG.logo && (
+                    <img
+                        src={APP_CONFIG.logo}
+                        alt="logo-bg"
+                        style={{
+                            position: 'absolute',
+                            right: '-40px',
+                            top: '-10px',
+                            height: '130%',
+                            width: 'auto',
+                            opacity: 0.25,
+                            pointerEvents: 'none',
+                            transform: 'rotate(12deg)',
+                            filter: 'brightness(0) invert(1)' // White-ish logo for dark yellow background
+                        }}
+                    />
+                )}
+
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div className="bento-label" style={{ color: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Zap size={14} fill="white" />
+                            Total Omzet Hari Ini
+                        </div>
+                    </div>
+
+                    <div className="bento-value" style={{ fontSize: '38px', margin: '12px 0 8px', letterSpacing: '-1.5px' }}>{formatRupiah(totalRevenue)}</div>
+                    <div className="bento-sub" style={{ opacity: 0.9, fontWeight: 500 }}>{transactionCount} transaksi pesanan masuk</div>
                 </div>
             </div>
 
-            {showSettings && (
-                <StoreSettingsModal
-                    onClose={() => setShowSettings(false)}
-                    onNameChange={setStoreName}
-                />
-            )}
+            {/* ── Stats Grid ── */}
+            <div className="bento-grid fade-in" style={{ animationDelay: '0.2s', marginBottom: '24px' }}>
+                {/* 1. Saldo Tunai: Paling penting buat operasional laci */}
+                <div className="bento-mini" style={{ padding: '18px', background: '#fffbeb', border: '1.5px solid #fde68a', position: 'relative', overflow: 'hidden' }}>
+                    {/* Background Logo subtle */}
+                    {APP_CONFIG.logo && (
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-15px', height: '80%', opacity: 0.08, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                    )}
 
-            {/* ── BENTO STAT CARDS ── */}
-            <div className="bento-grid">
-
-                {/* Hero Card — Total Penjualan */}
-                <div className="bento-hero">
-                    <div className="bento-blob blob-1" />
-                    <div className="bento-blob blob-2" />
-
-                    <div className="bento-hero-top">
-                        <span className="bento-label">Total Penjualan Hari Ini</span>
-                        <span className="bento-arrow-pill">
-                            <ArrowUpRight size={14} />
-                            Live
-                        </span>
-                    </div>
-                    <div className="bento-hero-value">{formatRupiah(totalRevenue)}</div>
-                    <div className="bento-hero-sub">{transactionCount} transaksi berhasil tercatat</div>
-
-                    {/* mini bar viz */}
-                    <div className="bento-bars">
-                        {Array.from({ length: 7 }, (_, i) => (
-                            <div
-                                key={i}
-                                className="bento-bar"
-                                style={{ height: `${20 + Math.sin(i * 1.2 + totalRevenue) * 14 + (i === 6 && totalRevenue > 0 ? 20 : 0)}%` }}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Mini Card — Laba Bersih (Tema Dark Premium) */}
-                <div className="bento-mini" style={{ background: '#1c1c1e', border: '1px solid #333' }}>
-                    <div className="bento-mini-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' }}>
-                        <TrendingUp size={16} />
-                    </div>
-                    <div className="bento-mini-body">
-                        <div className="bento-mini-label" style={{ color: '#9ca3af' }}>Saldo Bersih</div>
-                        <div className="bento-mini-value" style={{ color: 'white' }}>{formatRupiah(netProfit)}</div>
-                        <div className="bento-mini-tag" style={{ background: isProfit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)', color: isProfit ? '#34d399' : '#f87171' }}>
-                            {isProfit ? 'Surplus' : 'Defisit'}
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{ background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '10px' }}>
+                                <Banknote size={18} />
+                            </div>
+                            <div className="bento-mini-label" style={{ margin: 0, fontSize: '11px', color: '#92400e' }}>Uang di Laci</div>
+                        </div>
+                        <div className="bento-mini-value" style={{ fontSize: '18px', fontWeight: 800, color: '#92400e' }}>{formatRupiah(cashInDrawer)}</div>
+                        <div style={{ marginTop: '4px', fontSize: '10px', fontWeight: 700, color: '#b45309', opacity: 0.8 }}>
+                            {formatRupiah(cashRevenue)} Tn - {formatRupiah(totalExp)} Ex
                         </div>
                     </div>
                 </div>
 
-                {/* Mini Card — Transaksi (Tema Light Amber) */}
-                <div className="bento-mini" style={{ background: '#fffbeb', border: '1.5px solid #fde68a' }}>
-                    <div className="bento-mini-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
-                        <ShoppingBag size={16} />
-                    </div>
-                    <div className="bento-mini-body">
-                        <div className="bento-mini-label" style={{ color: '#d97706' }}>Transaksi</div>
-                        <div className="bento-mini-value bento-mini-count" style={{ color: '#92400e' }}>{transactionCount}</div>
-                        <div className="bento-mini-tag" style={{ background: '#fef3c7', color: '#d97706' }}>hari ini</div>
+                {/* 2. Saldo Bersih (Accounting) */}
+                <div className="bento-mini" style={{ padding: '18px', position: 'relative', overflow: 'hidden' }}>
+                    {/* Background Logo subtle */}
+                    {APP_CONFIG.logo && (
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-15px', height: '80%', opacity: 0.06, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                    )}
+
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '8px', borderRadius: '10px' }}>
+                                <TrendingUp size={18} />
+                            </div>
+                            <div className="bento-mini-label" style={{ margin: 0 }}>Laba Berjalan</div>
+                        </div>
+                        <div className="bento-mini-value" style={{ fontSize: '18px' }}>{formatRupiah(netProfit)}</div>
+                        <div style={{ marginTop: '4px', fontSize: '10px', fontWeight: 700, color: isProfit ? '#10b981' : '#ef4444' }}>
+                            {isProfit ? '↑ Laba' : '↓ Rugi'}
+                        </div>
                     </div>
                 </div>
 
+                {/* 3. Transaksi (Full width) */}
+                <div className="bento-mini" style={{ padding: '18px', gridColumn: 'span 2', position: 'relative', overflow: 'hidden' }}>
+                    {/* Background Logo subtle wide */}
+                    {APP_CONFIG.logo && (
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-30px', top: '-10px', height: '140%', opacity: 0.05, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                    )}
+
+                    <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ background: '#f1f5f9', color: '#64748b', padding: '8px', borderRadius: '10px' }}>
+                                <ShoppingBag size={18} />
+                            </div>
+                            <div className="bento-mini-label" style={{ margin: 0 }}>Jumlah Transaksi</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                            <span className="bento-mini-value" style={{ fontSize: '20px' }}>{transactionCount}</span>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Pesanan</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* ── Quick Actions ── */}
-            <div className="section-card">
-                <h2 className="section-title">Aksi Cepat</h2>
-                <div className="quick-actions-grid">
-                    <button className="quick-action-btn primary" onClick={() => onNavigate('pos')}>
-                        <Plus size={20} />
-                        <span>Transaksi Baru</span>
+            <div className="section-card fade-in" style={{ animationDelay: '0.3s', border: 'none', background: 'transparent', padding: 0 }}>
+                <h2 className="section-title" style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '16px' }}>AKSI CEPAT</h2>
+                <div className="quick-actions-row" style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn-primary" style={{
+                        flex: 1,
+                        height: '68px',
+                        background: '#f59e0b',
+                        boxShadow: '0 8px 16px rgba(245, 158, 11, 0.25)',
+                        borderRadius: '20px'
+                    }} onClick={() => onNavigate('pos')}>
+                        <Plus size={24} style={{ marginRight: '8px' }} />
+                        <span style={{ fontSize: '15px', fontWeight: 800 }}>Kasir POS</span>
                     </button>
-                    {/* Mengubah tombol biru menjadi tombol gelap bernuansa Kopi */}
-                    <button className="quick-action-btn" style={{ background: '#1c1c1e', color: '#f59e0b', border: '1px solid #333' }} onClick={() => onNavigate('inventory')}>
-                        <Store size={20} />
-                        <span>Inventaris Menu</span>
-                    </button>
+                    {activeUser?.role === 'owner' && (
+                        <button className="btn-secondary" style={{
+                            flex: 1,
+                            height: '68px',
+                            background: 'white',
+                            border: '1.5px solid #f1f5f9',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                            borderRadius: '20px',
+                            color: '#0f172a'
+                        }} onClick={() => onNavigate('inventory')}>
+                            <Store size={22} style={{ marginRight: '8px', color: '#64748b' }} />
+                            <span style={{ fontSize: '15px', fontWeight: 800 }}>Katalog</span>
+                        </button>
+                    )}
                 </div>
             </div>
-
 
             {/* ── Recent Transactions ── */}
-            <div className="section-card">
-                <h2 className="section-title">Transaksi Terakhir</h2>
-                {todaySales.length === 0 ? (
-                    <div className="empty-state-small">
-                        <ClipboardList size={20} className="empty-icon-muted" />
-                        <p>Belum ada transaksi hari ini</p>
-                    </div>
-                ) : (
-                    <div className="list-items">
-                        {[...todaySales].reverse().slice(0, 5).map((sale) => (
-                            <div key={sale.id} className="list-item-row" onClick={() => setSelectedSale(sale)} style={{ cursor: 'pointer' }}>
-                                <div className="list-item-info">
-                                    <span className="list-item-name">{sale.items.length} item terjual</span>
-                                    <span className="list-item-sub">{formatTime(sale.createdAt)} · {sale.paymentMethod || 'Cash'} · {sale.staffName || 'Kasir'}</span>
+            <div className="section-card fade-in" style={{ animationDelay: '0.4s', border: 'none', boxShadow: 'none', background: 'transparent', padding: '32px 0 0' }}>
+                <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>TRANSAKSI TERAKHIR</span>
+                    {todaySales.length > 0 && (
+                        <button className="text-btn" style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b' }}>LIHAT SEMUA</button>
+                    )}
+                </div>
+
+                <div className="transaction-list-container" style={{
+                    background: 'white',
+                    borderRadius: '24px',
+                    padding: '8px',
+                    marginTop: '12px',
+                    border: '1px solid #f3f4f6'
+                }}>
+                    {todaySales.length === 0 ? (
+                        <div className="empty-state-small" style={{ textAlign: 'center', padding: '40px 0', opacity: 0.5 }}>
+                            <ShoppingBag size={32} style={{ marginBottom: '12px', opacity: 0.3 }} />
+                            <p style={{ fontWeight: 600 }}>Belum ada transaksi hari ini</p>
+                            <p style={{ fontSize: '12px', marginTop: '4px' }}>Buka Kasir untuk melayani pesanan</p>
+                        </div>
+                    ) : (
+                        <div className="transaction-list" style={{ display: 'flex', flexDirection: 'column' }}>
+                            {[...todaySales].reverse().slice(0, 5).map((sale, idx) => (
+                                <div
+                                    key={sale.id}
+                                    className="inv-card"
+                                    onClick={() => setSelectedSale(sale)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        borderBottom: idx === Math.min(todaySales.length, 5) - 1 ? 'none' : '1px solid #f3f4f6',
+                                        padding: '16px'
+                                    }}
+                                >
+                                    <div className="inv-card-left">
+                                        <div className="inv-emoji" style={{ borderRadius: '12px', background: '#fef3c7', color: '#d97706' }}>
+                                            <Calendar size={18} />
+                                        </div>
+                                        <div className="inv-info">
+                                            <div className="inv-name" style={{ fontSize: '14px', fontWeight: 700 }}>{sale.items.length} item pesanan</div>
+                                            <div className="inv-sku" style={{ marginTop: '2px' }}>{formatTime(sale.createdAt)} · {sale.paymentMethod || 'Cash'}</div>
+                                        </div>
+                                    </div>
+                                    <div className="inv-card-right">
+                                        <div className="inv-price-tag" style={{ fontSize: '16px' }}>{formatRupiah(sale.totalRevenue)}</div>
+                                        <ChevronRight size={14} className="muted-text" style={{ marginLeft: '4px' }} />
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="amount-text">{formatRupiah(sale.totalRevenue)}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* ── Logout Confirm Modal ── */}
-            {showLogoutConfirm && (
-                <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
-                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="modal-title">Keluar Sesi</h3>
-                        <p className="modal-body">Anda yakin ingin keluar (logout) dan mengganti kasir?</p>
-                        <div className="modal-actions">
-                            <button className="btn-secondary" onClick={() => setShowLogoutConfirm(false)}>Batal</button>
-                            <button className="btn-primary" onClick={handleLogout}>Ya, Keluar</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── Transaction Detail Modal ── */}
+            {/* Modals */}
             {selectedSale && (
                 <TransactionDetailModal
                     sale={selectedSale}
                     onClose={() => setSelectedSale(null)}
-                    onDelete={cancelSale}
+                    onDelete={(id) => cancelSale(id)}
                 />
             )}
 
+            {/* Logout Confirm Modal */}
+            {showLogoutConfirm && (
+                <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
+                    <div className="modal-card" style={{ padding: '24px', background: 'white', borderRadius: '24px', maxWidth: '320px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
+                        <div style={{ background: '#fee2e2', color: '#ef4444', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                            <LogOut size={24} />
+                        </div>
+                        <h3 className="modal-title" style={{ marginBottom: '8px', fontSize: '18px' }}>Keluar Sesi Kasir?</h3>
+                        <p className="modal-body" style={{ color: '#666', marginBottom: '24px', fontSize: '14px' }}>Data Anda aman. Silakan masuk kembali nanti dengan PIN.</p>
+                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444' }} onClick={handleLogout}>Ya, Keluar</button>
+                            <button className="btn-secondary" onClick={() => setShowLogoutConfirm(false)}>Nanti Saja</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,28 +1,29 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
-    Search, Plus, Edit2, Trash2, X, Save, PackagePlus, ChevronDown,
-    Package, Flame, Droplets,
+    Search, Plus, Edit2, Trash2, X, Save, ChevronDown,
+    Package, Coffee, Utensils, Image as ImageIcon
 } from 'lucide-react';
 import { useStore, type Product } from '@/lib/store';
 import { formatRupiah } from '@/lib/utils';
+import { getActiveUser } from '@/lib/users';
 
-type InventoryView = 'list' | 'add-product' | 'edit-product' | 'add-stock';
+type InventoryView = 'list' | 'add-product' | 'edit-product';
 
-const CATEGORIES = ['Gas', 'Air Minum', 'Lainnya'];
+const CATEGORIES = ['Kopi & Minuman', 'Makanan', 'Rokok', 'Lainnya'];
 
 function getCategoryIcon(category: string) {
     const map: Record<string, React.ReactNode> = {
-        Gas: <Flame size={16} />,
-        'Air Minum': <Droplets size={16} />,
-        Lainnya: <Package size={16} />,
+        'Kopi & Minuman': <Coffee size={16} />,
+        'Makanan': <Utensils size={16} />,
+        'Lainnya': <Package size={16} />,
     };
     return map[category] ?? <Package size={16} />;
 }
 
 const emptyForm = {
-    name: '', sku: '', category: 'Gas', costPrice: '', sellingPrice: '', stock: '', lowStockThreshold: '10',
+    name: '', sku: '', category: 'Kopi & Minuman', sellingPrice: '', image: ''
 };
 
 export default function Inventory() {
@@ -30,14 +31,18 @@ export default function Inventory() {
     const addProduct = useStore((s) => s.addProduct);
     const updateProduct = useStore((s) => s.updateProduct);
     const deleteProduct = useStore((s) => s.deleteProduct);
-    const addStockAddition = useStore((s) => s.addStockAddition);
+
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
 
     const [view, setView] = useState<InventoryView>('list');
     const [search, setSearch] = useState('');
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [form, setForm] = useState(emptyForm);
-    const [stockForm, setStockForm] = useState({ productId: '', quantity: '', costPerUnit: '' });
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+    const activeUser = mounted ? getActiveUser() : null;
+    const isOwner = activeUser?.role === 'owner';
 
     const filtered = useMemo(() =>
         products.filter((p) =>
@@ -50,29 +55,37 @@ export default function Inventory() {
         setForm((prev) => ({ ...prev, [field]: value }));
 
     const openEdit = (product: Product) => {
+        if (!isOwner) return;
         setSelectedProduct(product);
         setForm({
             name: product.name,
             sku: product.sku,
             category: product.category,
-            costPrice: String(product.costPrice),
             sellingPrice: String(product.sellingPrice),
-            stock: String(product.stock),
-            lowStockThreshold: String(product.lowStockThreshold),
+            image: product.image || ''
         });
         setView('edit-product');
     };
 
     const handleSaveProduct = () => {
-        if (!form.name || !form.sellingPrice) return;
+        if (!isOwner || !form.name || !form.sellingPrice) return;
+        
+        let finalImage = form.image;
+        
+        // Jika tidak ada foto yang diunggah, buat path otomatis berdasarkan nama
+        if (!finalImage) {
+            const fileName = form.name.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+            finalImage = `/katalog/${fileName}.jpg`;
+        }
+
         const data = {
             name: form.name,
             sku: form.sku,
             category: form.category,
-            costPrice: parseFloat(form.costPrice) || 0,
             sellingPrice: parseFloat(form.sellingPrice) || 0,
-            stock: parseInt(form.stock) || 0,
-            lowStockThreshold: parseInt(form.lowStockThreshold) || 10,
+            stock: 999999, // Selalu ada
+            lowStockThreshold: 0,
+            image: finalImage || undefined
         };
         if (view === 'add-product') {
             addProduct(data);
@@ -83,157 +96,112 @@ export default function Inventory() {
         setView('list');
     };
 
-    const handleAddStock = () => {
-        const product = products.find((p) => p.id === stockForm.productId);
-        if (!product || !stockForm.quantity) return;
-        const qty = parseInt(stockForm.quantity);
-        const cost = parseFloat(stockForm.costPerUnit) || product.costPrice;
-        addStockAddition({
-            productId: product.id,
-            productName: product.name,
-            quantity: qty,
-            costPerUnit: cost,
-            totalCost: qty * cost,
-        });
-        setStockForm({ productId: '', quantity: '', costPerUnit: '' });
-        setView('list');
-    };
-
-    // ─── Add Stock View ──────────────────────────────────────────────────────────
-    if (view === 'add-stock') {
-        const selProduct = products.find((p) => p.id === stockForm.productId);
-        return (
-            <div className="page-container">
-                <div className="page-header">
-                    <button className="back-btn" onClick={() => setView('list')}>
-                        <X size={20} />
-                    </button>
-                    <h1 className="page-title">Tambah Stok</h1>
-                </div>
-                <div className="form-card">
-                    <div className="form-group">
-                        <label className="form-label">Pilih Produk</label>
-                        <div className="select-wrapper">
-                            <select
-                                className="form-select"
-                                value={stockForm.productId}
-                                onChange={(e) => setStockForm((f) => ({
-                                    ...f,
-                                    productId: e.target.value,
-                                    costPerUnit: products.find((p) => p.id === e.target.value)?.costPrice.toString() || '',
-                                }))}
-                            >
-                                <option value="">-- Pilih Produk --</option>
-                                {products.map((p) => (
-                                    <option key={p.id} value={p.id}>{p.name} (stok: {p.stock})</option>
-                                ))}
-                            </select>
-                            <ChevronDown size={16} className="select-icon" />
-                        </div>
-                    </div>
-                    {selProduct && (
-                        <div className="product-info-box">
-                            <span className="flex items-center gap-2">{getCategoryIcon(selProduct.category)} {selProduct.name}</span>
-                            <span className="muted-text">Stok saat ini: <strong>{selProduct.stock}</strong></span>
-                        </div>
-                    )}
-                    <div className="form-group">
-                        <label className="form-label">Jumlah Masuk</label>
-                        <input
-                            className="form-input"
-                            type="number"
-                            placeholder="0"
-                            value={stockForm.quantity}
-                            onChange={(e) => setStockForm((f) => ({ ...f, quantity: e.target.value }))}
-                            inputMode="numeric"
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Harga Beli per Unit (Rp)</label>
-                        <input
-                            className="form-input"
-                            type="number"
-                            placeholder="0"
-                            value={stockForm.costPerUnit}
-                            onChange={(e) => setStockForm((f) => ({ ...f, costPerUnit: e.target.value }))}
-                            inputMode="numeric"
-                        />
-                    </div>
-                    {stockForm.quantity && stockForm.costPerUnit && (
-                        <div className="total-cost-box">
-                            <span>Total Pengeluaran:</span>
-                            <strong>{formatRupiah(parseInt(stockForm.quantity || '0') * parseFloat(stockForm.costPerUnit || '0'))}</strong>
-                        </div>
-                    )}
-                    <button
-                        className="btn-primary full-width"
-                        disabled={!stockForm.productId || !stockForm.quantity}
-                        onClick={handleAddStock}
-                    >
-                        <Save size={16} /> Simpan Penambahan Stok
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     // ─── Add / Edit Product View ─────────────────────────────────────────────────
     if (view === 'add-product' || view === 'edit-product') {
+        const isEdit = view === 'edit-product';
         return (
-            <div className="page-container">
-                <div className="page-header">
-                    <button className="back-btn" onClick={() => setView('list')}>
+            <div className="page-container fade-in">
+                <div className="page-header" style={{ marginBottom: '24px' }}>
+                    <button className="back-btn" onClick={() => setView('list')} style={{ background: '#f8fafc', padding: '10px', borderRadius: '14px' }}>
                         <X size={20} />
                     </button>
-                    <h1 className="page-title">{view === 'add-product' ? 'Produk Baru' : 'Edit Produk'}</h1>
+                    <h1 className="page-title" style={{ fontSize: '22px', fontWeight: 900 }}>{isEdit ? 'Ubah Menu' : 'Menu Baru'}</h1>
                 </div>
-                <div className="form-card">
-                    <div className="form-group">
-                        <label className="form-label">Nama Produk *</label>
-                        <input className="form-input" placeholder="Contoh: Aqua 600ml" value={form.name} onChange={(e) => handleField('name', e.target.value)} />
-                    </div>
-                    <div className="form-row">
-                        <div className="form-group flex-1">
-                            <label className="form-label">SKU / Kode</label>
-                            <input className="form-input" placeholder="AQ-600" value={form.sku} onChange={(e) => handleField('sku', e.target.value)} />
+
+                <div className="form-card" style={{ 
+                    background: 'white', 
+                    borderRadius: '28px', 
+                    padding: '32px 24px', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+                    border: '1px solid #f1f5f9'
+                }}>
+                    
+                    {/* Centered Image Preview Block */}
+                    <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                        <label 
+                            htmlFor="product-image-upload"
+                            className="image-edit-container" 
+                            style={{ 
+                                width: '140px', 
+                                height: '140px', 
+                                background: '#f8fafc', 
+                                borderRadius: '36px', 
+                                margin: '0 auto',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                border: '3px solid #fff',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                                position: 'relative',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            {form.image ? (
+                                <img src={form.image} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ textAlign: 'center', color: '#cbd5e1' }}>
+                                    <ImageIcon size={40} style={{ opacity: 0.5, marginBottom: '4px' }} />
+                                    <div style={{ fontSize: '10px', fontWeight: 800 }}>UNGGAH FOTO</div>
+                                </div>
+                            )}
+                            <input 
+                                id="product-image-upload"
+                                type="file" 
+                                accept="image/*" 
+                                style={{ display: 'none' }} 
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            handleField('image', reader.result as string);
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                            />
+                        </label>
+                        <div style={{ marginTop: '14px', fontSize: '13px', fontWeight: 800, color: '#64748b' }}>
+                            {form.image ? 'Foto Terpasang' : 'Ketuk untuk Unggah'}
                         </div>
-                        <div className="form-group flex-1">
-                            <label className="form-label">Kategori</label>
-                            <div className="select-wrapper">
-                                <select className="form-select" value={form.category} onChange={(e) => handleField('category', e.target.value)}>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '24px' }}>
+                        <label className="form-label" style={{ fontWeight: 800, fontSize: '13px', color: '#94a3b8', marginLeft: '4px' }}>NAMA MENU</label>
+                        <div style={{ position: 'relative' }}>
+                            <input 
+                                className="form-input" 
+                                placeholder="Contoh: Kopi Susu Aren" 
+                                style={{ paddingLeft: '16px', borderRadius: '18px', background: '#f8fafc', border: '1.5px solid #f1f5f9', height: '52px' }} 
+                                value={form.name} 
+                                onChange={(e) => handleField('name', e.target.value)} 
+                            />
+                        </div>
+                    </div>
+
+                    <div className="form-row" style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: 800, fontSize: '13px', color: '#94a3b8', marginLeft: '4px' }}>KATEGORI</label>
+                            <div className="select-wrapper" style={{ height: '48px' }}>
+                                <select className="form-select" style={{ borderRadius: '16px', background: '#f8fafc', border: '1.5px solid #f1f5f9', fontWeight: 700 }} value={form.category} onChange={(e) => handleField('category', e.target.value)}>
                                     {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                                 </select>
                                 <ChevronDown size={16} className="select-icon" />
                             </div>
                         </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="form-group flex-1">
-                            <label className="form-label">Harga Beli (Rp)</label>
-                            <input className="form-input" type="number" placeholder="0" value={form.costPrice} onChange={(e) => handleField('costPrice', e.target.value)} inputMode="numeric" />
-                        </div>
-                        <div className="form-group flex-1">
-                            <label className="form-label">Harga Jual (Rp) *</label>
-                            <input className="form-input" type="number" placeholder="0" value={form.sellingPrice} onChange={(e) => handleField('sellingPrice', e.target.value)} inputMode="numeric" />
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label className="form-label" style={{ fontWeight: 800, fontSize: '13px', color: '#94a3b8', marginLeft: '4px' }}>HARGA JUAL</label>
+                            <div style={{ position: 'relative' }}>
+                                <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontWeight: 800, color: '#f59e0b' }}>Rp</div>
+                                <input className="form-input" type="number" placeholder="0" style={{ paddingLeft: '44px', borderRadius: '16px', background: '#f8fafc', border: '1.5px solid #f1f5f9', fontWeight: 900, color: '#0f172a' }} value={form.sellingPrice} onChange={(e) => handleField('sellingPrice', e.target.value)} inputMode="numeric" />
+                            </div>
                         </div>
                     </div>
-                    {form.costPrice && form.sellingPrice && (
-                        <div className="margin-info">
-                            Margin: {formatRupiah(parseFloat(form.sellingPrice || '0') - parseFloat(form.costPrice || '0'))} per unit
-                        </div>
-                    )}
-                    <div className="form-row">
-                        <div className="form-group flex-1">
-                            <label className="form-label">Stok Awal</label>
-                            <input className="form-input" type="number" placeholder="0" value={form.stock} onChange={(e) => handleField('stock', e.target.value)} inputMode="numeric" />
-                        </div>
-                        <div className="form-group flex-1">
-                            <label className="form-label">Batas Stok Rendah</label>
-                            <input className="form-input" type="number" placeholder="10" value={form.lowStockThreshold} onChange={(e) => handleField('lowStockThreshold', e.target.value)} inputMode="numeric" />
-                        </div>
-                    </div>
-                    <button className="btn-primary full-width" disabled={!form.name || !form.sellingPrice} onClick={handleSaveProduct}>
-                        <Save size={16} /> Simpan Produk
+                    
+                    <button className="btn-primary full-width" style={{ height: '60px', borderRadius: '20px', fontSize: '16px', fontWeight: 900, boxShadow: '0 10px 25px rgba(245, 158, 11, 0.3)' }} disabled={!form.name || !form.sellingPrice} onClick={handleSaveProduct}>
+                        <Save size={20} style={{ marginRight: '8px' }} /> {isEdit ? 'Simpan Perubahan' : 'Tambah Menu'}
                     </button>
                 </div>
             </div>
@@ -242,76 +210,93 @@ export default function Inventory() {
 
     // ─── Product List View ───────────────────────────────────────────────────────
     return (
-        <div className="page-container">
+        <div className="page-container fade-in">
             <div className="page-header">
-                <h1 className="page-title">Inventaris</h1>
-                <div className="header-actions">
-                    <button className="btn-icon-secondary" onClick={() => { setStockForm({ productId: '', quantity: '', costPerUnit: '' }); setView('add-stock'); }}>
-                        <PackagePlus size={18} />
-                    </button>
-                    <button className="btn-icon-primary" onClick={() => { setForm(emptyForm); setView('add-product'); }}>
-                        <Plus size={18} />
-                    </button>
+                <div>
+                    <h1 className="page-title">Katalog Menu</h1>
+                    <p style={{ fontSize: '13px', color: '#64748b' }}>{products.length} item menu tersedia</p>
                 </div>
+                {isOwner && (
+                    <button className="btn-icon-primary" onClick={() => { setForm(emptyForm); setView('add-product'); }}>
+                        <Plus size={20} />
+                    </button>
+                )}
             </div>
 
-            <div className="search-bar">
-                <Search size={16} className="search-icon" />
+            <div className="search-bar" style={{ 
+                background: 'white', 
+                border: '1.5px solid #f1f5f9', 
+                borderRadius: '16px', 
+                padding: '0 16px', 
+                height: '52px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '20px'
+            }}>
+                <Search size={18} style={{ color: '#94a3b8' }} />
                 <input
                     className="search-input"
-                    placeholder="Cari produk, SKU, kategori..."
+                    placeholder="Cari menu, kategori..."
+                    style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '15px' }}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
 
-            <div className="inv-summary">
-                <span>{products.length} produk</span>
-                <span>·</span>
-                <span className="text-amber-600">{products.filter((p) => p.stock <= p.lowStockThreshold).length} stok menipis</span>
-            </div>
-
-            <div className="inventory-list">
+            <div className="inventory-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {filtered.length === 0 ? (
-                    <div className="empty-state">
-                        <Package size={40} className="empty-icon-muted" />
-                        <p>Produk tidak ditemukan</p>
-                        <button className="btn-secondary" onClick={() => { setForm(emptyForm); setView('add-product'); }}>
-                            <Plus size={16} /> Tambah Produk
-                        </button>
+                    <div className="empty-state" style={{ padding: '60px 0' }}>
+                        <Package size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
+                        <p style={{ fontWeight: 600, color: '#94a3b8' }}>Menu tidak ditemukan</p>
                     </div>
                 ) : (
                     filtered.map((product) => {
-                        const isLow = product.stock <= product.lowStockThreshold;
-                        const isOut = product.stock === 0;
                         return (
-                            <div key={product.id} className="inv-card">
-                                <div className="inv-card-left">
-                                    <span className="inv-emoji">{getCategoryIcon(product.category)}</span>
+                            <div key={product.id} className="inv-card" style={{ 
+                                background: 'white', 
+                                padding: '12px', 
+                                borderRadius: '16px', 
+                                border: '1px solid #f1f5f9',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                            }}>
+                                <div className="inv-card-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ 
+                                        width: '48px', 
+                                        height: '48px', 
+                                        borderRadius: '12px', 
+                                        background: '#f8fafc', 
+                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        {product.image ? (
+                                            <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ color: '#cbd5e1' }}>{getCategoryIcon(product.category)}</div>
+                                        )}
+                                    </div>
                                     <div className="inv-info">
-                                        <div className="inv-name">{product.name}</div>
-                                        <div className="inv-sku">{product.sku || product.category}</div>
-                                        <div className="inv-prices">
-                                            <span className="inv-buy">Beli: {formatRupiah(product.costPrice)}</span>
-                                            <span className="inv-sell">Jual: {formatRupiah(product.sellingPrice)}</span>
-                                        </div>
+                                        <div className="inv-name" style={{ fontWeight: 800, fontSize: '16px' }}>{product.name}</div>
                                     </div>
                                 </div>
-                                <div className="inv-card-right">
-                                    <div className={`inv-stock ${isOut ? 'out' : isLow ? 'low' : 'ok'}`}>
-                                        {product.stock}
+                                <div className="inv-card-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div className="inv-price-tag" style={{ fontWeight: 800 }}>
+                                        {formatRupiah(product.sellingPrice)}
                                     </div>
-                                    <div className="inv-stock-label">
-                                        {isOut ? 'Habis' : isLow ? 'Menipis' : 'Tersedia'}
-                                    </div>
-                                    <div className="inv-actions">
-                                        <button className="inv-btn-edit" onClick={() => openEdit(product)}>
-                                            <Edit2 size={14} />
-                                        </button>
-                                        <button className="inv-btn-delete" onClick={() => setDeleteConfirm(product.id)}>
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
+                                    {isOwner && (
+                                        <div className="inv-actions" style={{ display: 'flex', gap: '4px' }}>
+                                            <button className="btn-icon-secondary" style={{ width: '32px', height: '32px' }} onClick={() => openEdit(product)}>
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button className="btn-icon-secondary" style={{ width: '32px', height: '32px', color: '#ef4444' }} onClick={() => setDeleteConfirm(product.id)}>
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -322,14 +307,17 @@ export default function Inventory() {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-                    <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="modal-title">Hapus Produk?</h3>
-                        <p className="modal-body">
-                            Produk <strong>{products.find((p) => p.id === deleteConfirm)?.name}</strong> akan dihapus permanen.
+                    <div className="modal-card" style={{ padding: '24px', background: 'white', borderRadius: '24px', maxWidth: '320px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
+                        <div style={{ background: '#fee2e2', color: '#ef4444', width: '48px', height: '48px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                            <Trash2 size={24} />
+                        </div>
+                        <h3 className="modal-title" style={{ marginBottom: '8px', fontSize: '18px' }}>Hapus Menu?</h3>
+                        <p className="modal-body" style={{ color: '#666', marginBottom: '24px', fontSize: '14px' }}>
+                            Menu <strong>{products.find((p) => p.id === deleteConfirm)?.name}</strong> akan dihapus permanen.
                         </p>
-                        <div className="modal-actions">
+                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444' }} onClick={() => { deleteProduct(deleteConfirm); setDeleteConfirm(null); }}>Hapus Menu</button>
                             <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Batal</button>
-                            <button className="btn-danger" onClick={() => { deleteProduct(deleteConfirm); setDeleteConfirm(null); }}>Hapus</button>
                         </div>
                     </div>
                 </div>
