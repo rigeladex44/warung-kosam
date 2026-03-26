@@ -79,8 +79,23 @@ export default function PinLock({ children }: PinLockProps) {
     // ── Phase 1: User Selection ───────────────────────────────────────────────
     if (!selectedUser) {
         return (
-            <div className="pin-lock-screen">
-                <div className="pin-lock-card">
+            <div className="pin-lock-screen" style={{ position: 'relative', overflow: 'hidden' }}>
+                {/* 🎨 Background Watermark */}
+                <img 
+                    src="/logo.png" 
+                    alt="bg-watermark" 
+                    style={{ 
+                        position: 'absolute', 
+                        top: '50%', 
+                        left: '50%', 
+                        transform: 'translate(-50%, -50%)', 
+                        width: '150%', 
+                        opacity: 0.12, 
+                        filter: 'grayscale(1)', 
+                        pointerEvents: 'none'
+                    }} 
+                />
+                <div className="pin-lock-card" style={{ position: 'relative', zIndex: 1 }}>
                     <div className="pin-lock-icon">
                         <img src="/logo.png" alt="Logo" className="login-logo-img" />
                     </div>
@@ -105,8 +120,23 @@ export default function PinLock({ children }: PinLockProps) {
 
     // ── Phase 2: PIN Entry ───────────────────────────────────────────────────
     return (
-        <div className="pin-lock-screen">
-            <div className="pin-lock-card">
+        <div className="pin-lock-screen" style={{ position: 'relative', overflow: 'hidden' }}>
+            {/* 🎨 Background Watermark */}
+            <img 
+                src="/logo.png" 
+                alt="bg-watermark" 
+                style={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    left: '50%', 
+                    transform: 'translate(-50%, -50%)', 
+                    width: '150%', 
+                    opacity: 0.12, 
+                    filter: 'grayscale(1)', 
+                    pointerEvents: 'none'
+                }} 
+            />
+            <div className="pin-lock-card" style={{ position: 'relative', zIndex: 1 }}>
                 <button className="pin-back-btn" onClick={() => { setSelectedUser(null); setPin(''); setError(false); }}>
                     <ChevronLeft size={20} />
                     <span>Ganti Akun</span>
