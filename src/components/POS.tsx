@@ -520,202 +520,192 @@ export default function POS() {
     // ── 🍕 CATALOG VIEW (DEFAULT) ─────────────────────────────────────────────
     return (
         <div className="page-container fade-in">
-            <div className="page-header" style={{ marginBottom: '16px' }}>
-                <h1 className="page-title">Mesin Kasir</h1>
-                <div style={{ position: 'relative' }}>
-                    <ShoppingCart size={24} style={{ color: '#0f172a' }} />
-                    {cartCount > 0 && (
-                        <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#f59e0b', color: 'white', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', border: '2px solid white' }}>{cartCount}</span>
-                    )}
+            <style>{`
+                @media screen and (min-width: 1024px) {
+                    .pos-landscape-container {
+                        display: grid;
+                        grid-template-columns: 1fr 380px;
+                        gap: 32px;
+                        align-items: start;
+                    }
+                    .cart-bottom-bar { display: none !important; }
+                    .catalog-section { padding-bottom: 20px !important; }
+                    .product-grid { grid-template-columns: repeat(4, 1fr) !important; }
+                }
+            `}</style>
+
+            <div className="pos-landscape-container">
+                {/* 🏷️ CATALOG SECTION */}
+                <div className="catalog-section">
+                    <div className="page-header" style={{ marginBottom: '16px' }}>
+                        <h1 className="page-title">Mesin Kasir</h1>
+                        <div style={{ position: 'relative' }} className="mobile-only-cart-icon">
+                            <ShoppingCart size={24} style={{ color: '#0f172a' }} />
+                            {cartCount > 0 && (
+                                <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: '#f59e0b', color: 'white', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '10px', border: '2px solid white' }}>{cartCount}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Premium Search */}
+                    <div className="search-bar" style={{
+                        background: 'white', border: '1.5px solid #f1f5f9', borderRadius: '16px',
+                        padding: '0 16px', height: '52px', display: 'flex', alignItems: 'center',
+                        gap: '12px', marginBottom: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+                    }}>
+                        <Search size={18} style={{ color: '#94a3b8' }} />
+                        <input className="search-input" placeholder="Cari kopi, rokok, atau makanan..."
+                            style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '15px' }}
+                            value={search} onChange={(e) => setSearch(e.target.value)} />
+                    </div>
+
+                    {/* Categories Horizontal Scroll */}
+                    <div className="category-scroll" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none' }}>
+                        {CATEGORIES.map((cat) => (
+                            <button key={cat} className={`category-chip ${category === cat ? 'active' : ''}`}
+                                style={{
+                                    whiteSpace: 'nowrap', padding: '10px 18px', borderRadius: '14px',
+                                    fontSize: '13px', fontWeight: 700, background: category === cat ? '#f59e0b' : 'white',
+                                    color: category === cat ? 'white' : '#64748b', border: category === cat ? 'none' : '1.5px solid #f1f5f9',
+                                    boxShadow: category === cat ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none'
+                                }}
+                                onClick={() => setCategory(cat)}>
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Better Product Grid */}
+                    <div className="product-grid" style={{
+                        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', paddingBottom: '100px'
+                    }}>
+                        {filteredProducts.length === 0 ? (
+                            <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
+                                <Package size={40} style={{ margin: '0 auto 12px' }} />
+                                <p style={{ fontWeight: 600 }}>Menu tidak ditemukan</p>
+                            </div>
+                        ) : (
+                            filteredProducts.map((product) => {
+                                const inCart = cart.find((c) => c.product.id === product.id);
+                                return (
+                                    <div key={product.id} className="product-card"
+                                        style={{
+                                            background: 'white', borderRadius: '28px', border: inCart ? '3px solid #f59e0b' : '1px solid #f1f5f9',
+                                            boxShadow: inCart ? '0 15px 30px rgba(245, 158, 11, 0.2)' : '0 10px 20px rgba(0,0,0,0.05)',
+                                            display: 'flex', flexDirection: 'column', position: 'relative', padding: '12px',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer', height: '210px'
+                                        }}
+                                        onClick={() => addToCart(product)}>
+                                        
+                                        <div style={{
+                                            width: '100%', height: '130px', borderRadius: '18px', overflow: 'hidden', border: '4px solid white',
+                                            boxShadow: '0 8px 16px rgba(0,0,0,0.12)', position: 'relative', background: '#f8fafc', flexShrink: 0
+                                        }}>
+                                            {product.image ? (
+                                                <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
+                                                    {getCategoryIcon(product.category)}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {inCart && (
+                                            <div style={{
+                                                position: 'absolute', top: '4px', right: '4px', background: '#f59e0b', color: 'white',
+                                                width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center',
+                                                justifyContent: 'center', fontSize: '14px', fontWeight: 900, boxShadow: '0 8px 16px rgba(245, 158, 11, 0.4)',
+                                                zIndex: 10, border: '3px solid white'
+                                            }}>
+                                                {inCart.quantity}
+                                            </div>
+                                        )}
+
+                                        <div style={{ padding: '0 4px', marginTop: '2px' }}>
+                                            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {product.name}
+                                            </div>
+                                            <div style={{ fontSize: '17px', fontWeight: 900, color: '#f59e0b' }}>
+                                                {formatRupiah(product.sellingPrice)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                {/* 🛒 DESKTOP SIDE BAR CART (Always visible in landscape) */}
+                <div className="desktop-cart-sidebar" style={{ 
+                    display: 'none', 
+                    background: 'white', 
+                    borderRadius: '32px', 
+                    padding: '24px', 
+                    border: '1.5px solid #f1f5f9', 
+                    position: 'sticky', 
+                    top: '40px', 
+                    maxHeight: 'calc(100vh - 80px)', 
+                    flexDirection: 'column',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.03)'
+                }}>
+                    <style>{`
+                        @media screen and (min-width: 1024px) {
+                            .desktop-cart-sidebar { display: flex !important; }
+                        }
+                    `}</style>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                        <ShoppingCart size={22} color="#f59e0b" />
+                        <h2 style={{ fontSize: '20px', fontWeight: 900 }}>Daftar Pesanan</h2>
+                    </div>
+
+                    <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px' }}>
+                        {cart.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '40px 0', opacity: 0.3 }}>
+                                <ShoppingBag size={40} style={{ margin: '0 auto 12px' }} />
+                                <div style={{ fontWeight: 800 }}>Belum ada item</div>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {cart.map((item) => (
+                                    <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '16px' }}>
+                                        <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+                                            <div style={{ fontSize: '14px', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product.name}</div>
+                                            <div style={{ fontSize: '13px', fontWeight: 900, color: '#f59e0b' }}>{formatRupiah(item.product.sellingPrice)}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <button onClick={() => updateCartQty(item.product.id, item.quantity - 1)} style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={12} /></button>
+                                            <span style={{ fontSize: '14px', fontWeight: 900, minWidth: '16px', textAlign: 'center' }}>{item.quantity}</span>
+                                            <button onClick={() => updateCartQty(item.product.id, item.quantity + 1)} style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={12} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ borderTop: '2px dashed #f1f5f9', paddingTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8' }}>TOTAL BAYAR</span>
+                            <span style={{ fontSize: '20px', fontWeight: 950, color: '#0f172a' }}>{formatRupiah(cartTotal)}</span>
+                        </div>
+                        <button className="btn-primary full-width" style={{ height: '56px', borderRadius: '18px', background: '#0f172a' }}
+                            disabled={cart.length === 0} onClick={() => setView('cart')}>
+                            Lanjut ke Bayaran →
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Premium Search */}
-            <div className="search-bar" style={{
-                background: 'white',
-                border: '1.5px solid #f1f5f9',
-                borderRadius: '16px',
-                padding: '0 16px',
-                height: '52px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginBottom: '16px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-            }}>
-                <Search size={18} style={{ color: '#94a3b8' }} />
-                <input
-                    className="search-input"
-                    placeholder="Cari kopi, rokok, atau makanan..."
-                    style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '15px' }}
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-
-            {/* Categories Horizontal Scroll */}
-            <div className="category-scroll" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none' }}>
-                {CATEGORIES.map((cat) => (
-                    <button
-                        key={cat}
-                        className={`category-chip ${category === cat ? 'active' : ''}`}
-                        style={{
-                            whiteSpace: 'nowrap',
-                            padding: '10px 18px',
-                            borderRadius: '14px',
-                            fontSize: '13px',
-                            fontWeight: 700,
-                            background: category === cat ? '#f59e0b' : 'white',
-                            color: category === cat ? 'white' : '#64748b',
-                            border: category === cat ? 'none' : '1.5px solid #f1f5f9',
-                            boxShadow: category === cat ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none'
-                        }}
-                        onClick={() => setCategory(cat)}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
-
-            {/* Better Product Grid */}
-            <div className="product-grid" style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '12px',
-                paddingBottom: '100px'
-            }}>
-                {filteredProducts.length === 0 ? (
-                    <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
-                        <Package size={40} style={{ margin: '0 auto 12px' }} />
-                        <p style={{ fontWeight: 600 }}>Menu tidak ditemukan</p>
-                    </div>
-                ) : (
-                    filteredProducts.map((product) => {
-                        const inCart = cart.find((c) => c.product.id === product.id);
-                        return (
-                            <div
-                                key={product.id}
-                                className="product-card"
-                                style={{
-                                    background: 'white',
-                                    borderRadius: '28px',
-                                    border: inCart ? '3px solid #f59e0b' : '1px solid #f1f5f9',
-                                    boxShadow: inCart
-                                        ? '0 15px 30px rgba(245, 158, 11, 0.2)'
-                                        : '0 10px 20px rgba(0,0,0,0.05)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    position: 'relative',
-                                    padding: '12px',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    cursor: 'pointer',
-                                    height: '210px'
-                                }}
-                                onClick={() => addToCart(product)}
-                            >
-                                {/* 🖼️ Elevated Photo Element (Timbul di atas card) */}
-                                <div style={{
-                                    width: '100%',
-                                    height: '130px',
-                                    borderRadius: '18px',
-                                    overflow: 'hidden',
-                                    border: '4px solid white', // Stroke tebal
-                                    boxShadow: '0 8px 16px rgba(0,0,0,0.12)', // Shadow foto agar timbul
-                                    position: 'relative',
-                                    background: '#f8fafc',
-                                    flexShrink: 0
-                                }}>
-                                    {product.image ? (
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            onError={(e) => { (e.target as any).style.display = 'none'; }}
-                                        />
-                                    ) : (
-                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
-                                            {getCategoryIcon(product.category)}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* In Cart Badge (Melayang lebih tinggi) */}
-                                {inCart && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '4px',
-                                        right: '4px',
-                                        background: '#f59e0b',
-                                        color: 'white',
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '14px',
-                                        fontWeight: 900,
-                                        boxShadow: '0 8px 16px rgba(245, 158, 11, 0.4)',
-                                        zIndex: 10,
-                                        border: '3px solid white'
-                                    }}>
-                                        {inCart.quantity}
-                                    </div>
-                                )}
-
-                                {/* Card Base Text Area */}
-                                <div style={{ padding: '0 4px', marginTop: '2px' }}>
-                                    <div style={{
-                                        fontSize: '15px',
-                                        fontWeight: 800,
-                                        color: '#0f172a',
-                                        marginBottom: '1px',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {product.name}
-                                    </div>
-                                    <div style={{
-                                        fontSize: '17px',
-                                        fontWeight: 900,
-                                        color: '#f59e0b'
-                                    }}>
-                                        {formatRupiah(product.sellingPrice)}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-
-            {/* Cart Bottom Bar (Floating) */}
+            {/* Cart Bottom Bar (Floating - Mobile Only) */}
             {cart.length > 0 && (
-                <div className="cart-bottom-bar" style={{
-                    position: 'fixed',
-                    bottom: '88px',
-                    left: '20px',
-                    right: '20px',
-                    zIndex: 90
-                }}>
-                    <button
-                        className="cart-bottom-btn"
-                        onClick={() => setView('cart')}
+                <div className="cart-bottom-bar" style={{ position: 'fixed', bottom: '88px', left: '20px', right: '20px', zIndex: 90 }}>
+                    <button className="cart-bottom-btn" onClick={() => setView('cart')}
                         style={{
-                            background: '#0f172a',
-                            color: 'white',
-                            width: '100%',
-                            height: '64px',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '0 24px',
-                            boxShadow: '0 12px 24px rgba(0,0,0,0.2)',
-                            border: 'none'
-                        }}
-                    >
+                            background: '#0f172a', color: 'white', width: '100%', height: '64px', borderRadius: '20px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
+                            boxShadow: '0 12px 24px rgba(0,0,0,0.2)', border: 'none'
+                        }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '12px' }}>
                                 <ShoppingCart size={20} />

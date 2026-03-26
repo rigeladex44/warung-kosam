@@ -67,12 +67,29 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return (
         <div className="page-container">
             {/* ── Dashboard Header ── */}
-            <div className="page-header" style={{ marginBottom: '32px' }}>
-                <div className="fade-in">
-                    <h1 className="page-title" style={{ fontSize: '28px', letterSpacing: '-1px' }}>{APP_CONFIG.storeName}</h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                        <div className="live-dot" />
-                        <p className="page-subtitle" style={{ fontSize: '14px', fontWeight: 500 }}>Halo, {activeUser?.name || 'Kasir'} · {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <div className="page-header" style={{ marginBottom: '32px', alignItems: 'flex-start' }}>
+                <div className="fade-in" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <img
+                        src="/logo.png"
+                        alt="Logo"
+                        style={{
+                            width: '72px',
+                            height: '72px',
+                            borderRadius: '20px',
+                            objectFit: 'contain',
+                            background: 'white',
+                            padding: '6px',
+                            boxShadow: '0 8px 20px rgba(0,0,0,0.06)',
+                            border: '2px solid #f1f5f9'
+                        }}
+                        onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                    <div>
+                        <h1 className="page-title" style={{ fontSize: '26px', letterSpacing: '-1.2px', lineHeight: 1 }}>{APP_CONFIG.storeName}</h1>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                            <div className="live-dot" />
+                            <p className="page-subtitle" style={{ fontSize: '14px', fontWeight: 500 }}>Halo, {activeUser?.name || 'Kasir'} · {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                        </div>
                     </div>
                 </div>
                 <button
@@ -133,7 +150,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', background: '#fffbeb', border: '1.5px solid #fde68a', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-15px', height: '80%', opacity: 0.08, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.25, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1 }}>
@@ -154,7 +171,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-15px', height: '80%', opacity: 0.06, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.25, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1 }}>

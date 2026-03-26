@@ -45,12 +45,24 @@ body {
 }
 
 .app-shell {
-  max-width: 480px;
+  max-width: 1200px; /* Expands on Tablet/Desktop */
   margin: 0 auto;
   min-height: 100vh;
   background: var(--bg);
-  box-shadow: 0 0 40px rgba(0,0,0,0.1);
+  box-shadow: 0 0 80px rgba(0,0,0,0.08);
   position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile Constraint: Keep it narrow on vertical phones */
+@media screen and (max-width: 767px) and (orientation: portrait) {
+  .app-shell { max-width: 480px; }
+}
+
+@media screen and (min-width: 768px) {
+  .page-container {
+    padding: 40px 48px calc(var(--nav-height) + 40px);
+  }
 }
 
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
@@ -217,7 +229,7 @@ input { font-family: inherit; outline: none; }
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 480px;
+  max-width: 1200px; /* Match app-shell */
   height: var(--nav-height);
   background: var(--surface);
   border-top: 1px solid var(--border);
@@ -225,6 +237,12 @@ input { font-family: inherit; outline: none; }
   justify-content: space-around;
   align-items: center;
   z-index: 100;
+  transition: max-width 0.4s ease;
+}
+
+/* Mobile Portrait Constraint */
+@media screen and (max-width: 767px) and (orientation: portrait) {
+  .bottom-nav { max-width: 480px; }
 }
 
 .nav-item {
@@ -259,9 +277,15 @@ input { font-family: inherit; outline: none; }
 /* ── Dashboard Bento ── */
 .bento-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
   margin-bottom: 24px;
+}
+
+@media screen and (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .bento-hero {
