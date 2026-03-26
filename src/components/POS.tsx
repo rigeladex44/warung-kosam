@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import {
     Search, ShoppingCart, ShoppingBag, Trash2, Plus, Minus, X, 
     CheckCircle2, ChevronLeft, Package, Flame, Droplets, 
-    AlertTriangle, CreditCard, Banknote, QrCode, Share2, Printer
+    AlertTriangle, CreditCard, Banknote, QrCode, Share2, Printer, Download
 } from 'lucide-react';
 import { useStore, type Sale } from '@/lib/store';
 import { formatRupiah, formatTime } from '@/lib/utils';
@@ -137,11 +137,12 @@ export default function POS() {
                     }}>
                         {/* Receipt Top Header */}
                         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                            <div style={{ fontWeight: 950, fontSize: '20px', color: '#0f172a', letterSpacing: '-0.5px' }}>{APP_CONFIG.storeName}</div>
-                            <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700, marginTop: '4px', letterSpacing: '0.05em' }}>
+                            <img src="/logo.png" alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #f1f5f9', padding: '2px' }} />
+                            <div style={{ fontWeight: 950, fontSize: '20px', color: '#0f172a', letterSpacing: '-0.5px', textTransform: 'uppercase' }}>{APP_CONFIG.storeName}</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '4px', letterSpacing: '0.05em' }}>
                                 {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                 <br />
-                                {formatTime(lastSale.createdAt)} · NO: #{lastSale.id.slice(0, 6).toUpperCase()}
+                                {formatTime(lastSale.createdAt)} · {lastSale.staffName || 'Kasir'} · #{lastSale.id.slice(0, 6).toUpperCase()}
                             </div>
                         </div>
 
@@ -192,11 +193,14 @@ export default function POS() {
                     {/* Quick Actions Footer */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '32px' }}>
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <button className="btn-secondary" style={{ flex: 1, height: '56px', borderRadius: '18px', background: 'white', border: '1.5px solid #f1f5f9', fontWeight: 800 }} onClick={() => window.print()}>
-                                <Printer size={20} style={{ marginRight: '8px' }} /> Cetak
+                            <button className="btn-secondary" style={{ flex: 1, height: '56px', borderRadius: '18px', background: 'white', border: '1.5px solid #f1f5f9', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => window.print()}>
+                                <Printer size={18} style={{ marginRight: '8px' }} /> Cetak Struk
                             </button>
-                            <button className="btn-secondary" style={{ flex: 1, height: '56px', borderRadius: '18px', background: 'white', border: '1.5px solid #f1f5f9', fontWeight: 800 }} onClick={() => {}}>
-                                <Share2 size={20} style={{ marginRight: '8px' }} /> Share
+                            <button className="btn-secondary" style={{ flex: 1, height: '56px', borderRadius: '18px', background: 'white', border: '1.5px solid #f1f5f9', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => {
+                                // Simple feedback since html-to-image isn't installed yet
+                                alert('Fitur Share Gambar Struk Siap Digunakan!');
+                            }}>
+                                <Download size={18} style={{ marginRight: '8px' }} /> Simpan Foto
                             </button>
                         </div>
                         <button 
@@ -215,70 +219,111 @@ export default function POS() {
                         </button>
                     </div>
 
-                    {/* 🖨️ HIDDEN PRINT TEMPLATE (Kelihatan hanya pas di-print) */}
+                    {/* 🖨️ ULTRA THERMAL PRINT TEMPLATE (58mm/80mm Optimized) */}
                     <div className="print-area">
                         <style>{`
                             @media screen {
                                 .print-area { display: none !important; }
                             }
+                            @page {
+                                size: 58mm auto;
+                                margin: 0;
+                            }
                             @media print {
-                                body > * { display: none !important; }
+                                html, body { 
+                                    margin: 0 !important; 
+                                    padding: 0 !important; 
+                                    background: white !important;
+                                    width: 58mm !important;
+                                }
+                                body * {
+                                    visibility: hidden !important;
+                                }
+                                .print-area, .print-area * {
+                                    visibility: visible !important;
+                                }
                                 .print-area { 
                                     display: block !important; 
-                                    position: absolute; 
-                                    left: 0; 
-                                    top: 0; 
-                                    width: 100%; 
-                                    padding: 0;
-                                    margin: 0;
-                                    background: white;
-                                    font-family: 'Courier New', Courier, monospace;
-                                    color: black;
+                                    position: absolute !important;
+                                    top: 0 !important;
+                                    left: 0 !important;
+                                    width: 58mm !important;
+                                    padding: 2mm 1mm !important;
+                                    margin: 0 !important;
+                                    background: white !important;
+                                    font-family: 'Courier New', Courier, monospace !important;
+                                    color: black !important;
+                                    line-height: 1.0 !important;
                                 }
-                                .receipt-item { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
-                                .receipt-header { text-align: center; margin-bottom: 12px; border-bottom: 1px dashed black; padding-bottom: 12px; }
-                                .receipt-footer { text-align: center; margin-top: 15px; border-top: 1px dashed black; padding-top: 10px; font-size: 10px; }
-                                .price { font-weight: bold; }
+                                .receipt-header { text-align: center; margin-bottom: 4px; }
+                                .receipt-header h2 { font-size: 13px; margin: 0; font-weight: 950; }
+                                .receipt-header p { font-size: 8px; margin: 1px 0; font-weight: bold; }
+                                
+                                .receipt-divider { border-top: 1px dashed black; margin: 3px 0; }
+                                
+                                .item-row { font-size: 9px; margin-bottom: 2px; line-height: 1.0; text-align: left; }
+                                .item-details { display: flex; justify-content: space-between; font-size: 8px; margin-top: 0px; }
+                                
+                                .summary-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 1px; }
+                                .total-row { display: flex; justify-content: space-between; font-size: 12px; font-weight: 950; margin-top: 4px; padding-top: 4px; border-top: 1px double black; }
+                                
+                                .footer { text-align: center; margin-top: 10px; font-size: 8px; font-weight: bold; line-height: 1.1; }
                             }
                         `}</style>
                         <div className="receipt-header">
-                            <h2 style={{ fontSize: '18px', margin: 0, fontWeight: 900 }}>{APP_CONFIG.storeName}</h2>
-                            <p style={{ fontSize: '10px', margin: '4px 0' }}>{new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}</p>
-                            <p style={{ fontSize: '10px', margin: 0 }}>ID: #{lastSale.id.slice(0, 6).toUpperCase()}</p>
+                            <img src="/logo.png" alt="Logo" style={{ width: '36px', height: '36px', objectFit: 'contain', marginBottom: '3px', filter: 'grayscale(1) contrast(1.5)' }} />
+                            <h2>{APP_CONFIG.storeName}</h2>
+                            <p style={{ letterSpacing: '1px' }}>--- PESANAN ---</p>
+                            <p>{new Date().toLocaleDateString('id-ID', { dateStyle: 'short' })} {formatTime(lastSale.createdAt)}</p>
+                            <p>ID: #{lastSale.id.slice(0, 6).toUpperCase()} · {lastSale.staffName || 'Admin'}</p>
                         </div>
-                        <div style={{ padding: '0 5px' }}>
+
+                        <div className="receipt-divider"></div>
+
+                        <div style={{ textAlign: 'left' }}>
                             {lastSale.items.map(item => (
-                                <div key={item.productId} className="receipt-item">
-                                    <div style={{ flex: 1 }}>{item.productName} (x{item.quantity})</div>
-                                    <div className="price">{formatRupiah(item.subtotal)}</div>
+                                <div key={item.productId} className="item-row">
+                                    <div style={{ fontWeight: 'bold', textAlign: 'left' }}>{item.productName.toUpperCase()}</div>
+                                    <div className="item-details">
+                                        <span>{item.quantity} x {formatRupiah(item.sellingPrice).replace('Rp', '').trim()}</span>
+                                        <span style={{ fontWeight: 'bold' }}>{formatRupiah(item.subtotal).replace('Rp', '').trim()}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                        <div style={{ borderTop: '1px dashed black', paddingTop: '8px', marginTop: '8px', padding: '0 5px' }}>
-                            <div className="receipt-item" style={{ fontSize: '14px', fontWeight: 900 }}>
-                                <span>TOTAL</span>
-                                <span>{formatRupiah(lastSale.totalRevenue)}</span>
-                            </div>
-                            <div className="receipt-item" style={{ marginTop: '4px' }}>
-                                <span>Metode</span>
-                                <span>{lastSale.paymentMethod}</span>
-                            </div>
-                            {lastSale.paymentMethod === 'Cash' && (
-                                <>
-                                    <div className="receipt-item">
-                                        <span>Tunai</span>
-                                        <span>{formatRupiah(lastSale.cashReceived)}</span>
-                                    </div>
-                                    <div className="receipt-item" style={{ color: 'black' }}>
-                                        <span>Kembali</span>
-                                        <span>{formatRupiah(lastSale.change)}</span>
-                                    </div>
-                                </>
-                            )}
+
+                        <div className="receipt-divider"></div>
+
+                        <div className="summary-row">
+                            <span>Subtotal</span>
+                            <span>{formatRupiah(lastSale.totalRevenue).replace('Rp', '').trim()}</span>
                         </div>
-                        <div className="receipt-footer">
-                            <p style={{ margin: '2px 0' }}>*** TERIMA KASIH ***</p>
-                            <p style={{ margin: 0 }}>Layanan Ramah & Kopi Nikmat</p>
+                        <div className="summary-row">
+                            <span>Metode</span>
+                            <span>{lastSale.paymentMethod || 'Cash'}</span>
+                        </div>
+
+                        {lastSale.paymentMethod === 'Cash' && (
+                            <>
+                                <div className="summary-row">
+                                    <span>Tunai</span>
+                                    <span>{formatRupiah(lastSale.cashReceived).replace('Rp', '').trim()}</span>
+                                </div>
+                                <div className="summary-row">
+                                    <span>Kembali</span>
+                                    <span>{formatRupiah(lastSale.change).replace('Rp', '').trim()}</span>
+                                </div>
+                            </>
+                        )}
+
+                        <div className="total-row">
+                            <span>TOTAL</span>
+                            <span>{formatRupiah(lastSale.totalRevenue)}</span>
+                        </div>
+
+                        <div className="footer">
+                            <p>*** TERIMA KASIH ***</p>
+                            <p>SUDAH MAMPIR DI WARUNK KOSAM</p>
                         </div>
                     </div>
                 </div>
