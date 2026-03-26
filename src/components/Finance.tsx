@@ -10,6 +10,7 @@ import {
 import { useStore } from '@/lib/store';
 import { formatRupiah, formatTime } from '@/lib/utils';
 import { APP_CONFIG } from '@/lib/config';
+import { getActiveUser } from '@/lib/users';
 
 // Helper to check if date is within range
 const isWithinRange = (dateStr: string, start: string, end: string) => {
@@ -32,6 +33,10 @@ export default function Finance() {
     const expenses = useStore((s) => s.expenses);
     const addExpense = useStore((s) => s.addExpense);
     const deleteExpense = useStore((s) => s.deleteExpense);
+    const cancelSale = useStore((s) => s.cancelSale);
+
+    const activeUser = mounted ? getActiveUser() : null;
+    const isOwner = activeUser?.role === 'owner';
 
     // Filters state
     const [startDate, setStartDate] = useState(getTodayStr());
@@ -51,6 +56,7 @@ export default function Finance() {
     const [view, setView] = useState<FinanceView>('overview');
     const [expenseForm, setExpenseForm] = useState({ description: '', amount: '', category: 'Operasional' });
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [saleToCancel, setSaleToCancel] = useState<string | null>(null);
 
     const totalRevenue = useMemo(() => filteredSales.reduce((sum, sale) => sum + sale.totalRevenue, 0), [filteredSales]);
     const totalCashRevenue = useMemo(() => 
@@ -67,6 +73,23 @@ export default function Finance() {
     const totalExp = useMemo(() => filteredExpenses.reduce((sum, e) => sum + e.amount, 0), [filteredExpenses]);
     const netProfit = totalRevenue - totalExp;
     const isProfit = netProfit >= 0;
+
+    // Calculate sales performance per product
+    const productSales = useMemo(() => {
+        const stats: Record<string, { qty: number; revenue: number }> = {};
+        filteredSales.forEach(sale => {
+            sale.items.forEach(item => {
+                if (!stats[item.productName]) {
+                    stats[item.productName] = { qty: 0, revenue: 0 };
+                }
+                stats[item.productName].qty += item.quantity;
+                stats[item.productName].revenue += item.subtotal;
+            });
+        });
+        return Object.entries(stats)
+            .sort((a, b) => b[1].qty - a[1].qty)
+            .map(([name, data]) => ({ name, ...data }));
+    }, [filteredSales]);
 
     const handleAddExpense = () => {
         if (!expenseForm.description || !expenseForm.amount) return;
@@ -256,6 +279,55 @@ export default function Finance() {
                 {/* Lists Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                     
+                    {/* Section: Menu Performance (NEW) */}
+                    <div className="fade-in">
+                        <h2 style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>PERINGKAT MENU (POPULER)</span>
+                            <span style={{ color: '#f59e0b' }}>{productSales.length} Menu</span>
+                        </h2>
+                        <div style={{ background: 'white', borderRadius: '24px', padding: '12px', border: '1.5px solid #f1f5f9', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                            {productSales.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '32px 0', opacity: 0.3 }}>
+                                    <PieChart size={32} style={{ margin: '0 auto 8px' }} />
+                                    <div style={{ fontSize: '13px', fontWeight: 700 }}>Belum ada menu terjual</div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {productSales.map((item, idx) => (
+                                        <div key={item.name} style={{ 
+                                            padding: '12px 14px', 
+                                            borderRadius: '16px', 
+                                            background: idx === 0 ? '#fffbeb' : 'transparent',
+                                            border: idx === 0 ? '1px solid #fde68a' : '1px solid transparent',
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center' 
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{ 
+                                                    width: '28px', height: '28px', borderRadius: '8px', 
+                                                    background: idx === 0 ? '#f59e0b' : '#f1f5f9',
+                                                    color: idx === 0 ? 'white' : '#64748b',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    fontSize: '12px', fontWeight: 900
+                                                }}>
+                                                    {idx + 1}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{item.name}</div>
+                                                    <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>Terjual {item.qty} pcs</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{formatRupiah(item.revenue)}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
                     {/* Section: Expenses */}
                     <div className="fade-in">
                         <h2 style={{ fontSize: '13px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '16px' }}>RINCIAN PENGELUARAN</h2>
@@ -315,6 +387,11 @@ export default function Finance() {
                                             </div>
                                             <div className="inv-card-right">
                                                 <div className="inv-price-tag" style={{ color: '#10b981', fontSize: '15px' }}>{formatRupiah(sale.totalRevenue)}</div>
+                                                {isOwner && (
+                                                    <button onClick={() => setSaleToCancel(sale.id)} style={{ marginLeft: '12px', color: '#ef4444', background: 'transparent', border: 'none' }}>
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -354,8 +431,13 @@ export default function Finance() {
                         td { font-size: 11px; border-bottom: 1px solid #eee; padding: 10px 5px; }
                     }
                 `}</style>
-                <h1>LAPORAN KEUANGAN - {APP_CONFIG.storeName}</h1>
-                <div className="range">Periode Laporan: {new Date(startDate).toLocaleDateString()} s/d {new Date(endDate).toLocaleDateString()}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '24px' }}>LAPORAN KEUANGAN - {APP_CONFIG.storeName}</h1>
+                        <div className="range">Periode Laporan: {new Date(startDate).toLocaleDateString()} s/d {new Date(endDate).toLocaleDateString()}</div>
+                    </div>
+                    <img src="/logo.png" alt="Logo" style={{ width: '80px', height: '80px', borderRadius: '14px', objectFit: 'contain' }} />
+                </div>
                 
                 <div className="summary-grid">
                     <div className="summary-item">
@@ -393,6 +475,23 @@ export default function Finance() {
                     </tbody>
                 </table>
 
+                <h3 style={{ marginTop: '30px', borderBottom: '1px solid #eee', paddingBottom: '8px', fontSize: '14px' }}>Statistik Penjualan Per Menu</h3>
+                <table>
+                    <thead>
+                        <tr><th>Peringkat</th><th>Nama Menu</th><th>Jumlah Terjual</th><th>Total Omzet</th></tr>
+                    </thead>
+                    <tbody>
+                        {productSales.map((item, idx) => (
+                            <tr key={item.name}>
+                                <td>#{idx + 1}</td>
+                                <td style={{ fontWeight: 'bold' }}>{item.name}</td>
+                                <td>{item.qty} pcs</td>
+                                <td>{formatRupiah(item.revenue)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
                 <h3 style={{ marginTop: '30px', borderBottom: '1px solid #eee', paddingBottom: '8px', fontSize: '14px' }}>Ringkasan Penjualan</h3>
                 <table>
                     <thead>
@@ -414,14 +513,34 @@ export default function Finance() {
                 </div>
             </div>
 
-            {/* Delete Confirmation */}
+            {/* Sales Cancellation Confirmation */}
+            {saleToCancel && (
+                <div className="modal-overlay" onClick={() => setSaleToCancel(null)}>
+                    <div className="modal-card" style={{ padding: '32px 24px', background: 'white', borderRadius: '32px', maxWidth: '340px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
+                        <div style={{ background: '#fef2f2', color: '#ef4444', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                            <Trash2 size={28} />
+                        </div>
+                        <h3 className="modal-title" style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>Batalkan Transaksi?</h3>
+                        <p className="modal-body" style={{ color: '#64748b', marginBottom: '28px', fontSize: '14px' }}>Data penjualan ini akan dihapus permanen dari laporan keuangan.</p>
+                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444', color: 'white' }} onClick={() => { cancelSale(saleToCancel); setSaleToCancel(null); }}>Ya, Batalkan Jual</button>
+                            <button className="btn-secondary" onClick={() => setSaleToCancel(null)}>Kembali</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Expense Delete Confirmation */}
             {deleteConfirm && (
                 <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
                     <div className="modal-card" style={{ padding: '32px 24px', background: 'white', borderRadius: '32px', maxWidth: '340px', width: '90%', margin: '0 auto', textAlign: 'center' }}>
-                        <h3 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>Hapus Data?</h3>
-                        <p style={{ color: '#64748b', marginBottom: '28px', fontSize: '14px' }}>Tindakan ini tidak dapat dibatalkan.</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <button className="btn-primary" style={{ background: '#ef4444', color: 'white' }} onClick={() => { deleteExpense(deleteConfirm); setDeleteConfirm(null); }}>Hapus</button>
+                        <div style={{ background: '#fef2f2', color: '#ef4444', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                            <Trash2 size={28} />
+                        </div>
+                        <h3 className="modal-title" style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>Hapus Pengeluaran?</h3>
+                        <p className="modal-body" style={{ color: '#64748b', marginBottom: '28px', fontSize: '14px' }}>Data pengeluaran ini akan dihapus permanen.</p>
+                        <div className="modal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button className="btn-primary" style={{ background: '#ef4444', color: 'white' }} onClick={() => { deleteExpense(deleteConfirm); setDeleteConfirm(null); }}>Ya, Hapus Data</button>
                             <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Batal</button>
                         </div>
                     </div>

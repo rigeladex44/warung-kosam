@@ -246,7 +246,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em' }}>TRANSAKSI TERAKHIR</span>
                     {todaySales.length > 0 && (
-                        <button className="text-btn" style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b' }}>LIHAT SEMUA</button>
+                        <button
+                            className="text-btn"
+                            style={{ fontSize: '12px', fontWeight: 800, color: '#f59e0b' }}
+                            onClick={() => onNavigate('finance')}
+                        >
+                            LIHAT SEMUA
+                        </button>
                     )}
                 </div>
 
