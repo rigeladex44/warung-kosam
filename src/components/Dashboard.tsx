@@ -121,7 +121,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             position: 'absolute',
                             right: '-40px',
                             top: '-10px',
-                            height: '130%',
+                            height: '100%',
                             width: 'auto',
                             opacity: 0.65,
                             pointerEvents: 'none',
