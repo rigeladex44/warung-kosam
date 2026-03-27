@@ -121,9 +121,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             position: 'absolute',
                             right: '-40px',
                             top: '-10px',
-                            height: '140%',
+                            height: '170%',
                             width: 'auto',
-                            opacity: 0.45,
+                            opacity: 0.35,
                             pointerEvents: 'none',
                             transform: 'rotate(12deg)',
                             filter: 'brightness(0) invert(1)' // White-ish logo for dark yellow background
