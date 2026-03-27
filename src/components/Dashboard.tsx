@@ -121,7 +121,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                             position: 'absolute',
                             right: '-40px',
                             top: '-10px',
-                            height: '170%',
+                            height: '165%',
                             width: 'auto',
                             opacity: 0.35,
                             pointerEvents: 'none',
@@ -150,7 +150,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="bento-mini" style={{ padding: '18px', background: '#fffbeb', border: '1.5px solid #fde68a', position: 'relative', overflow: 'hidden' }}>
                     {/* Background Logo subtle */}
                     {APP_CONFIG.logo && (
-                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.65, filter: 'grayscale(1)', pointerEvents: 'none' }} />
+                        <img src={APP_CONFIG.logo} alt="l" style={{ position: 'absolute', right: '-15px', bottom: '-40px', height: '130%', opacity: 0.35, filter: 'grayscale(1)', pointerEvents: 'none' }} />
                     )}
 
                     <div style={{ position: 'relative', zIndex: 1 }}>
